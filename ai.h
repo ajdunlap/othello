@@ -1,0 +1,23 @@
+typedef struct minimax_node {
+  othello_bd *bd;
+  struct minimax_node_c *children;
+  double weight;
+} minimax_node;
+
+typedef struct minimax_node_c {
+  int move_x,move_y;
+  minimax_node *node;
+  struct minimax_node_c *next;
+} minimax_node_c;
+
+minimax_node *new_minimax_node (othello_bd *bd);
+
+minimax_node *add_minimax_child (minimax_node *node, int move_x, int move_y, minimax_node *child_node);
+
+minimax_node *build_minimax_tree (int max_depth,int depth, othello_bd *bd);
+
+void eval_minimax_tree (minimax_node *node);
+
+int best_move (minimax_node *node, int *x, int *y);
+
+double static_eval (othello_bd *bd);
