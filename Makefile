@@ -7,9 +7,9 @@ OBJ=board.o show.o play.o othello.o ai.o
 othello: ${OBJ}
 
 play.o: board.h
-main.o: show.h board.h play.h ai.h
+othello.o: show.h board.h play.h ai.h
 show.o: board.h
-ai.o: board.h play.h
+ai.o: board.h play.h show.h
 
 clean:
 	rm -f ${OBJ} othello

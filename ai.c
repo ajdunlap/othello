@@ -2,12 +2,14 @@
 #include <stdio.h>
 #include "board.h"
 #include "play.h"
+#include "show.h"
 #include "math.h"
 #include "ai.h"
 
-minimax_node *new_minimax_node (othello_bd *bd) {
+minimax_node *new_minimax_node (othello_bd *bd, int depth) {
   minimax_node *node = (minimax_node*)malloc(sizeof(struct minimax_node));
   node->bd = copy_othello_bd(bd);
+  node->depth = depth;
   node->children = NULL;
   return node;
 }
@@ -30,19 +32,33 @@ minimax_node *add_minimax_child (minimax_node *node, int move_x, int move_y, min
 }
 
 minimax_node *build_minimax_tree (int max_depth,int depth, othello_bd *bd) {
-  minimax_node *node = new_minimax_node(bd);
+  minimax_node *node = new_minimax_node(bd,depth);
   if (depth < max_depth) {
     for (int i = 0 ; i < X_SIZE ; ++i) {
       for (int j = 0 ; j < Y_SIZE ; ++j) {
         othello_bd *new_bd = copy_othello_bd(bd);
         if (play_piece_if_legal(new_bd,i,j)) {
-          minimax_node *child_node = build_minimax_tree(max_depth,depth+1,bd);
+          if (depth < 2) {
+            printf("Maybe I'll play %d,%d\n",i,j);
+          }
+          minimax_node *child_node = build_minimax_tree(max_depth,depth+1,new_bd);
           add_minimax_child(node,i,j,child_node);
         }
       }
     }
   }
   return node;
+}
+
+void free_minimax_tree (minimax_node *node) {
+  minimax_node_c *child = node->children;
+  while (child) {
+    minimax_node_c *old_child = child;
+    child = child->next;
+    free_minimax_tree(old_child->node);
+    free((void*)old_child);
+  }
+  free((void*)node);
 }
 
 void eval_minimax_tree (minimax_node *node) {
@@ -52,9 +68,9 @@ void eval_minimax_tree (minimax_node *node) {
     do {
       eval_minimax_tree(child->node);
       if (node->bd->turn == 1) {
-        node->weight = fmin(node->weight,child->node->weight);
-      } else {
         node->weight = fmax(node->weight,child->node->weight);
+      } else {
+        node->weight = fmin(node->weight,child->node->weight);
       }
     } while (child = child->next);
   } else {
@@ -64,6 +80,7 @@ void eval_minimax_tree (minimax_node *node) {
 
 int best_move (minimax_node *node, int *x, int *y) {
   eval_minimax_tree(node);
+  // show_minimax_tree(node);
   minimax_node_c *child = node->children;
   int done = 0;
   while (child && !done) {
@@ -86,4 +103,23 @@ double static_eval (othello_bd *bd) {
     }
   }
   return result;
+}
+
+void show_minimax_tree (minimax_node *node) {
+  minimax_node_c *child = node->children;
+  if (child) {
+    do {
+      for (int i = 0 ; i < node->depth ; ++i) {
+        fprintf(stderr," ");
+      }
+      fprintf(stderr,"Considering move %d %d for %d,weight: %f\n",child->move_x,child->move_y,node->bd->turn,child->node->weight);
+      show_othello_bd(stderr,child->node->bd);
+      show_minimax_tree(child->node);
+    } while (child = child->next);
+  } else {
+    for (int i = 0 ; i < node->depth ; ++i) {
+      fprintf(stderr," ");
+    }
+    fprintf(stderr,"Weight: %f\n",node->weight);
+  }
 }
