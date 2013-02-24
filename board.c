@@ -1,3 +1,4 @@
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -9,6 +10,7 @@ othello_bd *new_othello_bd (void) {
   bd->board[3][3] = bd->board[4][4] = 1;
   bd->board[3][4] = bd->board[4][3] = -1;
   bd->turn = 1;
+  bd->just_passed = false;
   return bd;
 }
 

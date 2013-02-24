@@ -6,13 +6,13 @@
 void show_othello_piece(FILE *f,char c) {
   switch (c) {
     case -1:
-      fprintf(f,"X");
+      fprintf(f,"\e[31m#\e[0m|");
       break;
     case 0:
-      fprintf(f," ");
+      fprintf(f," |");
       break;
     case 1:
-      fprintf(f,"O");
+      fprintf(f,"\e[34m#\e[0m|");
       break;
     default:
       break;
@@ -21,16 +21,16 @@ void show_othello_piece(FILE *f,char c) {
 
 void print_horiz_border (FILE *f) {
   fprintf(f," +");
-  for (int j = 0 ; j < X_SIZE ; ++j) {
+  for (int j = 0 ; j < X_SIZE*2-1 ; ++j) {
     fprintf(f,"-");
   }
   fprintf(f,"+\n");
 }
 
 void show_othello_bd (FILE *f,othello_bd *bd) {
-  fprintf(f,"  ");
+  fprintf(f," |");
   for (int j = 0 ; j < X_SIZE ; ++j) {
-    fprintf(f,"%d",j);
+    fprintf(f,"%d|",j);
   }
   fprintf(f,"\n");
   print_horiz_border(f);
@@ -39,7 +39,7 @@ void show_othello_bd (FILE *f,othello_bd *bd) {
     for (int j = 0 ; j < X_SIZE ; ++j) {
       show_othello_piece(f,bd->board[i][j]);
     }
-    fprintf(f,"|\n");
+    fprintf(f,"\n");
   }
   print_horiz_border(f);
 }

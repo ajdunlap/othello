@@ -9,6 +9,7 @@
 typedef struct othello_bd {
   char board[X_SIZE][Y_SIZE];
   char turn;
+  char just_passed;
 } othello_bd;
 
 othello_bd *new_othello_bd (void);

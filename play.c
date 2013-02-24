@@ -1,3 +1,4 @@
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -32,6 +33,7 @@ int play_piece_or_legal_move (int play,othello_bd *bd,int x,int y) {
     }
   }
   if (play && legal_move) {
+    bd->just_passed = false;
     bd->board[x][y] = bd->turn;
     bd->turn = -(bd->turn);
   }
@@ -43,5 +45,26 @@ int play_piece_if_legal (othello_bd *bd,int x,int y) {
 }
 
 int legal_move (othello_bd *bd,int x,int y) {
-  return play_piece_or_legal_move(1,bd,x,y);
+  return play_piece_or_legal_move(0,bd,x,y);
+}
+
+int have_legal_moves (othello_bd *bd) {
+  for (int i = 0 ; i < X_SIZE ; ++i) {
+    for (int j = 0 ; j < Y_SIZE ; ++j) {
+      if (legal_move(bd,i,j)) {
+        return true;
+      }
+    }
+  }
+  return false;
+}
+
+int pass_turn_is_game_over (othello_bd *bd) {
+  bd->turn = -(bd->turn);
+  if (bd->just_passed) {
+    return 1;
+  } else {
+    bd->just_passed = true;
+    return 0;
+  }
 }
