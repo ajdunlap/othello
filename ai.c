@@ -147,8 +147,8 @@ void eval_minimax_tree (minimax_node *node) {
     } while (child = child->next);
   } else {
     node->weight = static_eval(node->bd);
-    show_othello_bd(stdout,node->bd);
-    printf("wt:%f\n",node->weight);
+    //show_othello_bd(stdout,node->bd);
+    //printf("wt:%f\n",node->weight);
   }
 }
 
