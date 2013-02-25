@@ -51,7 +51,7 @@ bool play_ai_turn_is_game_over(othello_bd *bd) {
 int main () {
   othello_bd *bd = new_othello_bd();
   show_othello_bd(stdout,bd);
-  bool game_over;
+  bool game_over = 0;
   while (!game_over) {
     if (bd->turn == 1) {
       game_over = play_human_turn_is_game_over(bd);
