@@ -28,7 +28,7 @@ bool play_human_turn_is_game_over(othello_bd *bd) {
 
 bool play_ai_turn_is_game_over(othello_bd *bd) {
   if (have_legal_moves(bd)) {
-    minimax_node *node = build_minimax_tree(4,1,bd);
+    minimax_node *node = build_minimax_tree(50,bd);
     show_othello_bd(stdout,bd);
     printf("Static evaluation: %f\n",static_eval(bd));
     int x;

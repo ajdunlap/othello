@@ -1,16 +1,20 @@
+#include <stdbool.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <assert.h>
 #include "board.h"
 #include "play.h"
 #include "show.h"
 #include "math.h"
 #include "ai.h"
+#include "fringe-heap.h"
 
 minimax_node *new_minimax_node (othello_bd *bd, int depth) {
   minimax_node *node = (minimax_node*)malloc(sizeof(struct minimax_node));
   node->bd = copy_othello_bd(bd);
   node->depth = depth;
   node->children = NULL;
+  node->weight = static_eval(node->bd);
   return node;
 }
 
@@ -31,6 +35,58 @@ minimax_node *add_minimax_child (minimax_node *node, int move_x, int move_y, min
   }
 }
 
+
+void extend_minimax_node_worker (fringe_heap *fh, minimax_node *node, bool add_to_fringe) {
+  // minimax_node *node = fh->pop_min_fringe_heap(fh);
+  //for (int d = 0 ; d <= 1 ; ++d) {
+  int have_legal_moves = 0;
+  for (int i = 0 ; i < X_SIZE ; ++i) {
+    for (int j = 0 ; j < Y_SIZE ; ++j) {
+      othello_bd *new_bd = copy_othello_bd(node->bd);
+      if (play_piece_if_legal(new_bd,i,j)) {
+        have_legal_moves = 1;
+        minimax_node *child_node = new_minimax_node(node->bd,0);
+        add_minimax_child(node,i,j,child_node);
+        if (add_to_fringe) {
+          insert_fringe_heap(fh,child_node);
+        } else {
+          printf("bob\n");
+          extend_minimax_node_worker(fh,child_node,true);
+        }
+      } else {
+        free((void*)new_bd);
+      }
+    }
+  }
+  if (!have_legal_moves) {
+    othello_bd *new_bd = copy_othello_bd(node->bd);
+    new_bd->turn = -(new_bd->turn);
+    minimax_node *child_node = new_minimax_node(node->bd,0);
+    add_minimax_child(node,-1,-1,child_node);
+    if (add_to_fringe) {
+      insert_fringe_heap(fh,child_node);
+    } else {
+      extend_minimax_node_worker(fh,child_node,true);
+    }
+  }
+}
+
+void extend_minimax_node (fringe_heap *fh) {
+  minimax_node *node = pop_min_fringe_heap(fh);
+  assert(node);
+  extend_minimax_node_worker (fh,node,false);
+}
+
+minimax_node *build_minimax_tree (int max_nodes, othello_bd *bd) {
+  minimax_node *node = new_minimax_node(bd,0);
+  fringe_heap *fh = new_fringe_heap (node);
+  for (int r = 0 ; r < max_nodes ; ++r) {
+    extend_minimax_node (fh);
+  }
+  return node;
+}
+
+/*
 minimax_node *build_minimax_tree (int max_depth,int depth, othello_bd *bd) {
   minimax_node *node = new_minimax_node(bd,depth);
   if (depth < max_depth) {
@@ -59,6 +115,7 @@ minimax_node *build_minimax_tree (int max_depth,int depth, othello_bd *bd) {
   }
   return node;
 }
+*/
 
 void free_minimax_tree (minimax_node *node) {
   minimax_node_c *child = node->children;

@@ -1,5 +1,6 @@
 #ifndef AI_H
 #define AI_H
+#include "board.h"
 typedef struct minimax_node {
   othello_bd *bd;
   struct minimax_node_c *children;
@@ -18,7 +19,7 @@ void free_minimax_tree (minimax_node *node);
 
 minimax_node *add_minimax_child (minimax_node *node, int move_x, int move_y, minimax_node *child_node);
 
-minimax_node *build_minimax_tree (int max_depth,int depth, othello_bd *bd);
+minimax_node *build_minimax_tree (int max_nodes, othello_bd *bd);
 
 void eval_minimax_tree (minimax_node *node);
 

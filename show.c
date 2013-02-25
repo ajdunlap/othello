@@ -6,13 +6,13 @@
 void show_othello_piece(FILE *f,char c) {
   switch (c) {
     case -1:
-      fprintf(f,"\e[31m#\e[0m|");
+      fprintf(f,"\e[31mX\e[0m|");
       break;
     case 0:
       fprintf(f," |");
       break;
     case 1:
-      fprintf(f,"\e[34m#\e[0m|");
+      fprintf(f,"\e[34mO\e[0m|");
       break;
     default:
       break;
