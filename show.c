@@ -6,13 +6,13 @@
 void show_othello_piece(FILE *f,char c, int last_played) {
   switch (c) {
     case -1:
-      fprintf(f,"\e[%smX\e[0m|", last_played? "1;33" : "31");
+      fprintf(f,"\e[%smX\e[0m|", last_played? "1;41" : "31");
       break;
     case 0:
       fprintf(f," |");
       break;
     case 1:
-      fprintf(f,"\e[%smO\e[0m|", last_played? "1;33" : "34");
+      fprintf(f,"\e[%smO\e[0m|", last_played? "1;44" : "34");
       break;
     default:
       break;
