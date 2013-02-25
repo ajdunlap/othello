@@ -77,8 +77,12 @@ void heapify (fringe_heap *fh) {
       } else {
         to_swap = l;
       }
-      swap_elts(fh,i,to_swap);
-      i = to_swap;
+      if (fh->heap[to_swap]->weight < fh->heap[i]->weight) {
+        swap_elts(fh,i,to_swap);
+        i = to_swap;
+      } else {
+        break;
+      }
     } else {
       break;
     }

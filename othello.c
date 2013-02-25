@@ -30,7 +30,7 @@ bool play_human_turn_is_game_over(othello_bd *bd) {
 bool play_ai_turn_is_game_over(othello_bd *bd) {
   if (have_legal_moves(bd)) {
     printf("Static evaluation: %f\n",static_eval(bd));
-    minimax_node *node = build_minimax_tree(1000,bd);
+    minimax_node *node = build_minimax_tree(10000,bd);
     //show_minimax_tree(node);
     int x;
     int y;
