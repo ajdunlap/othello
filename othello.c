@@ -28,9 +28,10 @@ bool play_human_turn_is_game_over(othello_bd *bd) {
 
 bool play_ai_turn_is_game_over(othello_bd *bd) {
   if (have_legal_moves(bd)) {
-    minimax_node *node = build_minimax_tree(50,bd);
     show_othello_bd(stdout,bd);
     printf("Static evaluation: %f\n",static_eval(bd));
+    minimax_node *node = build_minimax_tree(5,bd);
+    show_minimax_tree(node);
     int x;
     int y;
     best_move(node,&x,&y);
@@ -67,42 +68,6 @@ int main () {
   } else {
     printf("Tie!\n");
   }
+  free ((void*)bd);
   exit(0);
-
-    /*
-    if (have_legal_moves(bd)) {
-      printf("Move for player %d? > ",bd->turn);
-      int x,y;
-      if (scanf("%d %d",&x,&y) != 2) {
-        while (getchar() != '\n'); // throw away this line
-        printf("Bad move format; enter x y.\n");
-        continue;
-      } else if (!play_piece_if_legal(bd,x,y)) {
-        printf("Illegal move\n");
-        continue;
-      }
-    } else {
-      printf("Player %d passes.\n",bd->turn);
-      bd->turn = -(bd->turn);
-    }
-    if (have_legal_moves(bd)) {
-      minimax_node *node = build_minimax_tree(4,1,bd);
-      show_othello_bd(stdout,bd);
-      printf("Static evaluation: %f\n",static_eval(bd));
-      int x;
-      int y;
-      best_move(node,&x,&y);
-      free_minimax_tree(node);
-      printf("I played %d %d\n",x,y);
-      int result = play_piece_if_legal(bd,x,y);
-      if (!result) {
-        printf("my move sucked...\n");
-      }
-      show_othello_bd(stdout,bd);
-    } else {
-      printf("Player %d passes.\n",bd->turn);
-      bd->turn = -(bd->turn);
-    }
-  }
-    */
 }

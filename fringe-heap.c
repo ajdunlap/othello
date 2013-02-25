@@ -13,8 +13,12 @@ fringe_heap *new_fringe_heap (minimax_node *top) {
   return fh;
 }
 
+void free_fringe_heap (fringe_heap *fh) {
+  free((void*)fh->heap);
+  free((void*)fh);
+}
+
 void expand_fringe_heap (fringe_heap *fh) {
-  printf("expanding...\n");
   fh->max_size *= 2;
   fh->heap = (minimax_node**)realloc(fh->heap,fh->max_size*sizeof(minimax_node*));
   if (!fh->heap) {
@@ -57,11 +61,6 @@ void swap_elts (fringe_heap *fh, int i1, int i2) {
   minimax_node *tmp = fh->heap[i1];
   fh->heap[i1] = fh->heap[i2];
   fh->heap[i2] = tmp;
-}
-
-void free_fringe_heap (fringe_heap *fh) {
-  free((void*)fh->heap);
-  free((void*)fh);
 }
 
 void heapify (fringe_heap *fh) {

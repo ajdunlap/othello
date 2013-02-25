@@ -45,17 +45,15 @@ void extend_minimax_node_worker (fringe_heap *fh, minimax_node *node, bool add_t
       othello_bd *new_bd = copy_othello_bd(node->bd);
       if (play_piece_if_legal(new_bd,i,j)) {
         have_legal_moves = 1;
-        minimax_node *child_node = new_minimax_node(node->bd,0);
+        minimax_node *child_node = new_minimax_node(new_bd,0);
         add_minimax_child(node,i,j,child_node);
         if (add_to_fringe) {
           insert_fringe_heap(fh,child_node);
         } else {
-          printf("bob\n");
           extend_minimax_node_worker(fh,child_node,true);
         }
-      } else {
-        free((void*)new_bd);
       }
+      free((void*)new_bd);
     }
   }
   if (!have_legal_moves) {
@@ -83,6 +81,7 @@ minimax_node *build_minimax_tree (int max_nodes, othello_bd *bd) {
   for (int r = 0 ; r < max_nodes ; ++r) {
     extend_minimax_node (fh);
   }
+  free_fringe_heap(fh);
   return node;
 }
 
@@ -125,6 +124,7 @@ void free_minimax_tree (minimax_node *node) {
     free_minimax_tree(old_child->node);
     free((void*)old_child);
   }
+  free((void*)node->bd);
   free((void*)node);
 }
 
@@ -147,17 +147,19 @@ void eval_minimax_tree (minimax_node *node) {
     } while (child = child->next);
   } else {
     node->weight = static_eval(node->bd);
+    show_othello_bd(stdout,node->bd);
+    printf("wt:%f\n",node->weight);
   }
 }
 
 int best_move (minimax_node *node, int *x, int *y) {
   eval_minimax_tree(node);
-  show_minimax_tree(node);
+  //show_minimax_tree(node);
   minimax_node_c *child = node->children;
   int done = 0;
   while (child && !done) {
     if (child->node->weight == node->weight) {
-      printf("--->%d,%d\n",child->move_x,child->move_y);
+      printf("--->%f,%d,%d\n",node->weight,child->move_x,child->move_y);
       *x = child->move_x;
       *y = child->move_y;
       done = 1;
