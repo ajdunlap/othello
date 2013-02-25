@@ -17,6 +17,7 @@ bool play_human_turn_is_game_over(othello_bd *bd) {
       } else if (!play_piece_if_legal(bd,x,y)) {
         printf("Illegal move\n");
       } else {
+        show_othello_bd_with_last_move(stdout,bd,x,y);
         return 0;
       }
     }
@@ -28,7 +29,6 @@ bool play_human_turn_is_game_over(othello_bd *bd) {
 
 bool play_ai_turn_is_game_over(othello_bd *bd) {
   if (have_legal_moves(bd)) {
-    show_othello_bd(stdout,bd);
     printf("Static evaluation: %f\n",static_eval(bd));
     minimax_node *node = build_minimax_tree(1000,bd);
     //show_minimax_tree(node);
@@ -41,7 +41,7 @@ bool play_ai_turn_is_game_over(othello_bd *bd) {
     if (!result) {
       printf("my move sucked...\n");
     }
-    show_othello_bd(stdout,bd);
+    show_othello_bd_with_last_move(stdout,bd,x,y);
     return 0;
   } else {
     printf("Player %d passes.\n",bd->turn);
