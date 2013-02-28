@@ -5,6 +5,7 @@ SRC=board.c show.c play.c othello.c ai.c fringe-heap.c
 OBJ=board.o show.o play.o othello.o ai.o fringe-heap.o
 
 othello: ${OBJ}
+	${CC} -o othello ${OBJ} ${LDFLAGS}
 
 play.o: board.h
 othello.o: show.h board.h play.h ai.h
