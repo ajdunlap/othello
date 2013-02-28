@@ -1,4 +1,4 @@
-CFLAGS=-std=c99 -g
+CFLAGS=-std=c99 -g -Wall
 LDFLAGS=-lm
 
 SRC=board.c show.c play.c othello.c ai.c fringe-heap.c

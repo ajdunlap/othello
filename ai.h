@@ -17,13 +17,13 @@ typedef struct minimax_node_c {
 minimax_node *new_minimax_node (othello_bd *bd,int depth);
 void free_minimax_tree (minimax_node *node);
 
-minimax_node *add_minimax_child (minimax_node *node, int move_x, int move_y, minimax_node *child_node);
+void add_minimax_child (minimax_node *node, int move_x, int move_y, minimax_node *child_node);
 
 minimax_node *build_minimax_tree (int max_nodes, othello_bd *bd);
 
 void eval_minimax_tree (minimax_node *node);
 
-int best_move (minimax_node *node, int *x, int *y);
+void best_move (minimax_node *node, int *x, int *y);
 
 double static_eval (othello_bd *bd);
 void show_minimax_tree (minimax_node *node);

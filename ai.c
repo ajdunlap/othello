@@ -18,7 +18,7 @@ minimax_node *new_minimax_node (othello_bd *bd, int depth) {
   return node;
 }
 
-minimax_node *add_minimax_child (minimax_node *node, int move_x, int move_y, minimax_node *child_node) {
+void add_minimax_child (minimax_node *node, int move_x, int move_y, minimax_node *child_node) {
   minimax_node_c *current_child = node->children;
   minimax_node_c *child = (minimax_node_c*)malloc(sizeof(struct minimax_node_c));
   child->move_x = move_x;
@@ -139,12 +139,12 @@ void eval_minimax_tree (minimax_node *node) {
         node->weight = child->node->weight;
       } else {
         if (node->bd->turn == 1) {
-          node->weight = fmax(node->weight,child->node->weight);
+          node->weight = fmaxl(node->weight,child->node->weight);
         } else {
-          node->weight = fmin(node->weight,child->node->weight);
+          node->weight = fminl(node->weight,child->node->weight);
         }
       }
-    } while (child = child->next);
+    } while ((child = child->next));
   } else {
     node->weight = static_eval(node->bd);
     //show_othello_bd(stdout,node->bd);
@@ -152,7 +152,7 @@ void eval_minimax_tree (minimax_node *node) {
   }
 }
 
-int best_move (minimax_node *node, int *x, int *y) {
+void best_move (minimax_node *node, int *x, int *y) {
   eval_minimax_tree(node);
   //show_minimax_tree(node);
   minimax_node_c *child = node->children;
@@ -200,7 +200,7 @@ void show_minimax_tree (minimax_node *node) {
       fprintf(stderr,"Considering move %d %d for %d,weight: %f\n",child->move_x,child->move_y,node->bd->turn,child->node->weight);
       show_othello_bd(stderr,child->node->bd);
       show_minimax_tree(child->node);
-    } while (child = child->next);
+    } while ((child = child->next));
   } else {
     for (int i = 0 ; i < node->depth ; ++i) {
       fprintf(stderr," ");
