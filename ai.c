@@ -7,7 +7,7 @@
 #include "show.h"
 #include "math.h"
 #include "ai.h"
-#include "fringe-heap.h"
+#include "fringe.h"
 
 minimax_node *new_minimax_node (othello_bd *bd, int depth) {
   minimax_node *node = (minimax_node*)malloc(sizeof(struct minimax_node));
@@ -36,8 +36,8 @@ void add_minimax_child (minimax_node *node, int move_x, int move_y, minimax_node
 }
 
 
-void extend_minimax_node_worker (fringe_heap *fh, minimax_node *node, bool add_to_fringe) {
-  // minimax_node *node = fh->pop_min_fringe_heap(fh);
+void extend_minimax_node_worker (fringe *fh, minimax_node *node, bool add_to_fringe) {
+  // minimax_node *node = fh->pop_fringe_heap(fh);
   //for (int d = 0 ; d <= 1 ; ++d) {
   int have_legal_moves = 0;
   for (int i = 0 ; i < X_SIZE ; ++i) {
@@ -48,7 +48,7 @@ void extend_minimax_node_worker (fringe_heap *fh, minimax_node *node, bool add_t
         minimax_node *child_node = new_minimax_node(new_bd,0);
         add_minimax_child(node,i,j,child_node);
         if (add_to_fringe) {
-          insert_fringe_heap(fh,child_node);
+          insert_fringe(fh,child_node);
         } else {
           extend_minimax_node_worker(fh,child_node,true);
         }
@@ -62,26 +62,26 @@ void extend_minimax_node_worker (fringe_heap *fh, minimax_node *node, bool add_t
     minimax_node *child_node = new_minimax_node(node->bd,0);
     add_minimax_child(node,-1,-1,child_node);
     if (add_to_fringe) {
-      insert_fringe_heap(fh,child_node);
+      insert_fringe(fh,child_node);
     } else {
       extend_minimax_node_worker(fh,child_node,true);
     }
   }
 }
 
-void extend_minimax_node (fringe_heap *fh) {
-  minimax_node *node = pop_min_fringe_heap(fh);
+void extend_minimax_node (fringe *fh) {
+  minimax_node *node = pop_fringe(fh);
   assert(node);
   extend_minimax_node_worker (fh,node,false);
 }
 
 minimax_node *build_minimax_tree (int max_nodes, othello_bd *bd) {
   minimax_node *node = new_minimax_node(bd,0);
-  fringe_heap *fh = new_fringe_heap (node);
+  fringe *fh = new_fringe (node);
   for (int r = 0 ; r < max_nodes ; ++r) {
     extend_minimax_node (fh);
   }
-  free_fringe_heap(fh);
+  free_fringe(fh);
   return node;
 }
 
