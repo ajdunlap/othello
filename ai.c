@@ -193,8 +193,16 @@ double static_eval (othello_bd *bd) {
   int squares = 0;
   for (int i = 0 ; i < X_SIZE ; ++i) {
     for (int j = 0 ; j < Y_SIZE ; ++j) {
-      result += bd->board[i][j];
       if (bd->board[i][j]) {
+        result += bd->board[i][j];
+        bool x_edge = false;
+        if (i == 0 || i == X_SIZE-1) {
+          result += bd->board[i][j];
+          x_edge = true;
+        }
+        if (j == 0 || j == Y_SIZE-1) {
+          result += (x_edge ? 3 : 1)*bd->board[i][j];
+        }
         ++squares;
       }
     }

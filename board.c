@@ -23,3 +23,18 @@ othello_bd *copy_othello_bd (othello_bd *old_bd) {
 void free_othello_bd (othello_bd *bd) {
   free((void*)bd);
 }
+
+
+double score (othello_bd *bd) {
+  double result = 0;
+  int squares = 0;
+  for (int i = 0 ; i < X_SIZE ; ++i) {
+    for (int j = 0 ; j < Y_SIZE ; ++j) {
+      result += bd->board[i][j];
+      if (bd->board[i][j]) {
+        ++squares;
+      }
+    }
+  }
+  return result;
+}

@@ -30,7 +30,7 @@ bool play_ai_turn_is_game_over(othello_bd *bd) {
   if (have_legal_moves(bd)) {
     show_othello_bd(stdout,bd);
     printf("Static evaluation: %f\n",static_eval(bd));
-    minimax_node *node = build_minimax_tree(100,bd,5);
+    minimax_node *node = build_minimax_tree(100000,bd,6);
     //show_minimax_tree(node);
     int x;
     int y;
@@ -45,6 +45,7 @@ bool play_ai_turn_is_game_over(othello_bd *bd) {
     return 0;
   } else {
     printf("Player %d passes.\n",bd->turn);
+    show_othello_bd(stdout,bd);
     return pass_turn_is_game_over(bd);
   }
 }
@@ -60,7 +61,7 @@ int main () {
       game_over = play_ai_turn_is_game_over(bd);
     }
   }
-  double result = static_eval(bd);
+  double result = score(bd);
   if (result > 0) {
     printf("Player 1 wins!\n");
   } else if (result < 0) {
