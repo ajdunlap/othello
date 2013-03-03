@@ -68,8 +68,8 @@ void heapify (fringe_heap *fh) {
   while (true) {
     int l = heap_left_child(i);
     int r = heap_right_child(i);
-    minimax_node *ln = l < fh->cur_size ? fh->heap[l] : NULL;
-    minimax_node *rn = r < fh->cur_size ? fh->heap[r] : NULL;
+    // minimax_node *ln = l < fh->cur_size ? fh->heap[l] : NULL;
+    // minimax_node *rn = r < fh->cur_size ? fh->heap[r] : NULL;
     if (l < fh->cur_size) {
       int to_swap;
       if (r < fh->cur_size) {

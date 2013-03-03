@@ -8,7 +8,7 @@
 #include "show.h"
 #include "math.h"
 #include "ai.h"
-#include "fringe-heap.h"
+#include "fringe.h"
 
 minimax_node *new_minimax_node (othello_bd *bd, int depth) {
   minimax_node *node = (minimax_node*)malloc(sizeof(struct minimax_node));
@@ -21,7 +21,7 @@ minimax_node *new_minimax_node (othello_bd *bd, int depth) {
   return node;
 }
 
-minimax_node *add_minimax_child (minimax_node *node, int move_x, int move_y, minimax_node *child_node) {
+void add_minimax_child (minimax_node *node, int move_x, int move_y, minimax_node *child_node) {
   minimax_node_c *current_child = node->children;
   minimax_node_c *child = (minimax_node_c*)malloc(sizeof(struct minimax_node_c));
   child->move_x = move_x;
@@ -38,8 +38,8 @@ minimax_node *add_minimax_child (minimax_node *node, int move_x, int move_y, min
   }
 }
 
-int extend_minimax_node_worker (fringe_heap *fh, minimax_node *node, bool add_to_fringe, int max_depth) {
-  // minimax_node *node = fh->pop_min_fringe_heap(fh);
+void extend_minimax_node_worker (fringe *fh, minimax_node *node, bool add_to_fringe) {
+  // minimax_node *node = fh->pop_fringe_heap(fh);
   //for (int d = 0 ; d <= 1 ; ++d) {
   int have_legal_moves = 0;
   int nodes_added = 0;
@@ -52,9 +52,7 @@ int extend_minimax_node_worker (fringe_heap *fh, minimax_node *node, bool add_to
         minimax_node *child_node = new_minimax_node(new_bd,node->depth+1);
         add_minimax_child(node,i,j,child_node);
         if (add_to_fringe) {
-          if (node->depth < max_depth) {
-            insert_fringe_heap(fh,child_node);
-          }
+          insert_fringe(fh,child_node);
         } else {
           nodes_added += extend_minimax_node_worker(fh,child_node,true,max_depth);
         }
@@ -69,9 +67,7 @@ int extend_minimax_node_worker (fringe_heap *fh, minimax_node *node, bool add_to
     add_minimax_child(node,-1,-1,child_node);
     ++nodes_added;
     if (add_to_fringe) {
-      if (node->depth < max_depth) {
-        insert_fringe_heap(fh,child_node);
-      }
+      insert_fringe(fh,child_node);
     } else {
       nodes_added += extend_minimax_node_worker(fh,child_node,true,max_depth);
     }
@@ -79,23 +75,22 @@ int extend_minimax_node_worker (fringe_heap *fh, minimax_node *node, bool add_to
   return nodes_added;
 }
 
-int extend_minimax_node (fringe_heap *fh, int max_depth) {
-  minimax_node *node = pop_min_fringe_heap(fh);
+void extend_minimax_node (fringe *fh) {
+  minimax_node *node = pop_fringe(fh);
   if (!node) {
     printf("sucks\n");
     assert(node);
   }
-  return extend_minimax_node_worker (fh,node,false,max_depth);
+  extend_minimax_node_worker (fh,node,false);
 }
 
 minimax_node *build_minimax_tree (int max_nodes, othello_bd *bd, int max_depth) {
   minimax_node *node = new_minimax_node(bd,0);
-  fringe_heap *fh = new_fringe_heap (node);
-  int r = 0;
-  while (r < max_nodes) {
-    r += extend_minimax_node (fh, max_depth);
+  fringe *fh = new_fringe (node);
+  for (int r = 0 ; r < max_nodes ; ++r) {
+    extend_minimax_node (fh);
   }
-  free_fringe_heap(fh);
+  free_fringe(fh);
   return node;
 }
 
@@ -154,16 +149,12 @@ void eval_minimax_tree (minimax_node *node) {
         node_weight_set = true;
       } else {
         if (node->bd->turn == 1) {
-          //printf("%d///...max.. cur weight:%f, child weight: %f...\n",(int)node,node->weight,child->node->weight);
-          node->weight = fmax(node->weight,child->node->weight);
-          //printf("   new weight:%f\n", node->weight);
+          node->weight = fmaxl(node->weight,child->node->weight);
         } else {
-          //printf("...min.. cur weight:%f, child weight: %f...\n",node->weight,child->node->weight);
-          node->weight = fmin(node->weight,child->node->weight);
-          //printf("   new weight:%f\n", node->weight);
+          node->weight = fminl(node->weight,child->node->weight);
         }
       }
-    } while (child = child->next);
+    } while ((child = child->next));
   } else {
     node->weight = static_eval(node->bd);
     //show_othello_bd(stdout,node->bd);
@@ -171,7 +162,7 @@ void eval_minimax_tree (minimax_node *node) {
   }
 }
 
-int best_move (minimax_node *node, int *x, int *y) {
+void best_move (minimax_node *node, int *x, int *y) {
   eval_minimax_tree(node);
   show_minimax_tree(node);
   minimax_node_c *child = node->children;
@@ -223,7 +214,7 @@ void show_minimax_tree_worker (minimax_node *node) {
       fprintf(stderr,"%d -> %d;\n",(uint64_t)node,(uint64_t)child->node); // Considering move %d %d for %d,weight: %f\n",child->move_x,child->move_y,node->bd->turn,child->node->weight);
       // show_othello_bd(stderr,child->node->bd);
       show_minimax_tree_worker(child->node);
-    } while (child = child->next);
+    } while ((child = child->next));
   } else {
     for (int i = 0 ; i < node->depth ; ++i) {
       fprintf(stderr," ");

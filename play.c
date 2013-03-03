@@ -11,9 +11,9 @@ int play_piece_or_legal_move (int play,othello_bd *bd,int x,int y) {
   int legal_move = 0;
   for (int x_dir = -1 ; x_dir <= 1 ; ++x_dir) {
     for (int y_dir = -1 ; y_dir <= 1 ; y_dir += (x_dir ? 1 : 2)) { // skip 0 if x_dir is 0
-      char max_x = x;
-      char max_y = y;
-      char on_board = 1;
+      int max_x = x;
+      int max_y = y;
+      bool on_board = 1;
       do {
         max_x += x_dir;
         max_y += y_dir;
