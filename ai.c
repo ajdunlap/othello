@@ -1,6 +1,7 @@
 #include <stdbool.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <stdint.h>
 #include <assert.h>
 #include "board.h"
 #include "play.h"
@@ -13,8 +14,10 @@ minimax_node *new_minimax_node (othello_bd *bd, int depth) {
   minimax_node *node = (minimax_node*)malloc(sizeof(struct minimax_node));
   node->bd = copy_othello_bd(bd);
   node->depth = depth;
+  node->alpha = -INFINITY;
+  node->beta = INFINITY;
   node->children = NULL;
-  node->weight = static_eval(node->bd);
+  // node->weight = static_eval(node->bd);
   return node;
 }
 
@@ -35,22 +38,25 @@ minimax_node *add_minimax_child (minimax_node *node, int move_x, int move_y, min
   }
 }
 
-
-void extend_minimax_node_worker (fringe_heap *fh, minimax_node *node, bool add_to_fringe) {
+int extend_minimax_node_worker (fringe_heap *fh, minimax_node *node, bool add_to_fringe, int max_depth) {
   // minimax_node *node = fh->pop_min_fringe_heap(fh);
   //for (int d = 0 ; d <= 1 ; ++d) {
   int have_legal_moves = 0;
+  int nodes_added = 0;
   for (int i = 0 ; i < X_SIZE ; ++i) {
     for (int j = 0 ; j < Y_SIZE ; ++j) {
       othello_bd *new_bd = copy_othello_bd(node->bd);
       if (play_piece_if_legal(new_bd,i,j)) {
         have_legal_moves = 1;
-        minimax_node *child_node = new_minimax_node(new_bd,0);
+        ++nodes_added;
+        minimax_node *child_node = new_minimax_node(new_bd,node->depth+1);
         add_minimax_child(node,i,j,child_node);
         if (add_to_fringe) {
-          insert_fringe_heap(fh,child_node);
+          if (node->depth < max_depth) {
+            insert_fringe_heap(fh,child_node);
+          }
         } else {
-          extend_minimax_node_worker(fh,child_node,true);
+          nodes_added += extend_minimax_node_worker(fh,child_node,true,max_depth);
         }
       }
       free((void*)new_bd);
@@ -59,27 +65,35 @@ void extend_minimax_node_worker (fringe_heap *fh, minimax_node *node, bool add_t
   if (!have_legal_moves) {
     othello_bd *new_bd = copy_othello_bd(node->bd);
     new_bd->turn = -(new_bd->turn);
-    minimax_node *child_node = new_minimax_node(node->bd,0);
+    minimax_node *child_node = new_minimax_node(node->bd,node->depth+1);
     add_minimax_child(node,-1,-1,child_node);
+    ++nodes_added;
     if (add_to_fringe) {
-      insert_fringe_heap(fh,child_node);
+      if (node->depth < max_depth) {
+        insert_fringe_heap(fh,child_node);
+      }
     } else {
-      extend_minimax_node_worker(fh,child_node,true);
+      nodes_added += extend_minimax_node_worker(fh,child_node,true,max_depth);
     }
   }
+  return nodes_added;
 }
 
-void extend_minimax_node (fringe_heap *fh) {
+int extend_minimax_node (fringe_heap *fh, int max_depth) {
   minimax_node *node = pop_min_fringe_heap(fh);
-  assert(node);
-  extend_minimax_node_worker (fh,node,false);
+  if (!node) {
+    printf("sucks\n");
+    assert(node);
+  }
+  return extend_minimax_node_worker (fh,node,false,max_depth);
 }
 
-minimax_node *build_minimax_tree (int max_nodes, othello_bd *bd) {
+minimax_node *build_minimax_tree (int max_nodes, othello_bd *bd, int max_depth) {
   minimax_node *node = new_minimax_node(bd,0);
   fringe_heap *fh = new_fringe_heap (node);
-  for (int r = 0 ; r < max_nodes ; ++r) {
-    extend_minimax_node (fh);
+  int r = 0;
+  while (r < max_nodes) {
+    r += extend_minimax_node (fh, max_depth);
   }
   free_fringe_heap(fh);
   return node;
@@ -131,17 +145,22 @@ void free_minimax_tree (minimax_node *node) {
 void eval_minimax_tree (minimax_node *node) {
   minimax_node_c *child = node->children;
   if (child) {
-    node->weight = 0;
-    int node_weight_set = 0;
+    // node->weight = 0;
+    bool node_weight_set = false;
     do {
       eval_minimax_tree(child->node);
       if (!node_weight_set) {
         node->weight = child->node->weight;
+        node_weight_set = true;
       } else {
         if (node->bd->turn == 1) {
+          //printf("%d///...max.. cur weight:%f, child weight: %f...\n",(int)node,node->weight,child->node->weight);
           node->weight = fmax(node->weight,child->node->weight);
+          //printf("   new weight:%f\n", node->weight);
         } else {
+          //printf("...min.. cur weight:%f, child weight: %f...\n",node->weight,child->node->weight);
           node->weight = fmin(node->weight,child->node->weight);
+          //printf("   new weight:%f\n", node->weight);
         }
       }
     } while (child = child->next);
@@ -154,7 +173,7 @@ void eval_minimax_tree (minimax_node *node) {
 
 int best_move (minimax_node *node, int *x, int *y) {
   eval_minimax_tree(node);
-  //show_minimax_tree(node);
+  show_minimax_tree(node);
   minimax_node_c *child = node->children;
   int done = 0;
   while (child && !done) {
@@ -190,21 +209,31 @@ double static_eval (othello_bd *bd) {
   }
 }
 
-void show_minimax_tree (minimax_node *node) {
+void show_minimax_tree_worker (minimax_node *node) {
+  // fprintf(stderr,"digraph G {");
+  fprintf(stderr,"%d [label=\"%.1f\\n",(uint64_t)node,node->weight); // Considering move %d %d for %d,weight: %f\n",child->move_x,child->move_y,node->bd->turn,child->node->weight);
+  show_othello_bd_for_dot(stderr,node->bd);
+  fprintf(stderr,"\" style=filled fillcolor=%s];\n", -1 == node->bd->turn ? "cadetblue1" : "coral1");
   minimax_node_c *child = node->children;
   if (child) {
     do {
       for (int i = 0 ; i < node->depth ; ++i) {
         fprintf(stderr," ");
       }
-      fprintf(stderr,"Considering move %d %d for %d,weight: %f\n",child->move_x,child->move_y,node->bd->turn,child->node->weight);
-      show_othello_bd(stderr,child->node->bd);
-      show_minimax_tree(child->node);
+      fprintf(stderr,"%d -> %d;\n",(uint64_t)node,(uint64_t)child->node); // Considering move %d %d for %d,weight: %f\n",child->move_x,child->move_y,node->bd->turn,child->node->weight);
+      // show_othello_bd(stderr,child->node->bd);
+      show_minimax_tree_worker(child->node);
     } while (child = child->next);
   } else {
     for (int i = 0 ; i < node->depth ; ++i) {
       fprintf(stderr," ");
     }
-    fprintf(stderr,"Weight: %f\n",node->weight);
+    //fprintf(stderr,"Weight: %f\n",node->weight);
   }
+}
+
+void show_minimax_tree (minimax_node *node) {
+  fprintf(stderr,"digraph G {\ngraph [fontname = \"courier\"];\nnode [fontname = \"courier\"];\nedge [fontname = \"courier\"];\n");
+  show_minimax_tree_worker(node);
+  fprintf(stderr,"}\n");
 }
