@@ -170,7 +170,7 @@ void eval_minimax_tree (minimax_node *node) {
 
 void best_move (minimax_node *node, int *x, int *y) {
   eval_minimax_tree(node);
-  show_minimax_tree(node);
+  // show_minimax_tree(node);
   minimax_node_c *child = node->children;
   int done = 0;
   while (child && !done) {
