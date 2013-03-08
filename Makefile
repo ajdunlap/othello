@@ -1,8 +1,8 @@
 CFLAGS=-std=c99 -g -Wall
 LDFLAGS=-lm
 
-SRC=board.c show.c play.c othello.c ai.c fringe.c
-OBJ=board.o show.o play.o othello.o ai.o fringe.o
+SRC=board.c show.c play.c othello.c ai.c
+OBJ=board.o show.o play.o othello.o ai.o
 
 othello: ${OBJ}
 	${CC} -o othello ${OBJ} ${LDFLAGS}
@@ -10,8 +10,7 @@ othello: ${OBJ}
 play.o: board.h
 othello.o: show.h board.h play.h ai.h
 show.o: board.h
-ai.o: board.h play.h show.h fringe.h
-fringe.o: fringe.h ai.h
+ai.o: board.h play.h show.h
 
 clean:
 	rm -f ${OBJ} othello
