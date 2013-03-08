@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <assert.h>
+#include <time.h>
 #include "board.h"
 #include "play.h"
 #include "show.h"
@@ -112,19 +113,20 @@ void best_move (minimax_node *node, int *x, int *y) {
   // eval_minimax_tree(node);
   // show_minimax_tree(node);
   minimax_node_c *child = node->children;
-  int done = 0;
-  while (child && !done) {
+  srand(time(NULL));
+  // Reservoir sampling to choose a random "best" element from the list of children
+  // without knowing the size of the list of children beforehand.
+  int sofar = 0;
+  assert(child);
+  while (child) {
     if (child->node->weight == node->weight) {
-      printf("--->%f,%d,%d\n",node->weight,child->move_x,child->move_y);
-      *x = child->move_x;
-      *y = child->move_y;
-      done = 1;
-    } else {
-      child = child->next;
+      ++sofar;
+      if (0 == (rand () % sofar)) {
+        *x = child->move_x;
+        *y = child->move_y;
+      }
     }
-  }
-  if (!done) {
-    printf("Don't wanna play...\n");
+    child = child->next;
   }
 }
 
