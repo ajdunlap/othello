@@ -19,4 +19,6 @@ othello_bd *copy_othello_bd (othello_bd *old_bd);
 void free_othello_bd (othello_bd *bd);
 
 double score (othello_bd *bd);
+
+int distance_from_edge (int x, int y);
 #endif

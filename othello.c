@@ -26,7 +26,7 @@ bool play_human_turn_is_game_over(othello_bd *bd) {
   }
 }
 
-bool play_ai_turn_is_game_over(othello_bd *bd) {
+bool play_minimax_ai_turn_is_game_over(othello_bd *bd) {
   if (have_legal_moves(bd)) {
     show_othello_bd(stdout,bd);
     printf("Static evaluation: %f\n",static_eval(bd));
@@ -58,7 +58,7 @@ int main () {
     if (bd->turn == 1) {
       game_over = play_human_turn_is_game_over(bd);
     } else if (bd->turn == -1) {
-      game_over = play_ai_turn_is_game_over(bd);
+      game_over = play_minimax_ai_turn_is_game_over(bd);
     }
   }
   double result = score(bd);

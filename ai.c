@@ -128,29 +128,39 @@ void best_move (minimax_node *node, int *x, int *y) {
   }
 }
 
-double static_eval (othello_bd *bd) {
-  double result = 0;
-  int squares = 0;
+void init_board_counts (board_counts *cts) {
+  cts->score = 0;
+  cts->squares_filled = 0;
+  for (int k = 0 ; k < 3 ; ++k) {
+    cts->counts[k] = 0;
+  }
+}
+
+board_counts compute_board_counts (othello_bd *bd) {
+  board_counts cts;
+  init_board_counts(&cts);
   for (int i = 0 ; i < X_SIZE ; ++i) {
     for (int j = 0 ; j < Y_SIZE ; ++j) {
       if (bd->board[i][j]) {
-        result += bd->board[i][j];
-        bool x_edge = false;
-        if (i == 0 || i == X_SIZE-1) {
-          result += bd->board[i][j];
-          x_edge = true;
-        }
-        if (j == 0 || j == Y_SIZE-1) {
-          result += (x_edge ? 3 : 1)*bd->board[i][j];
-        }
-        ++squares;
+        ++cts.squares_filled;
+        cts.score += bd->board[i][j];
+        cts.counts[distance_from_edge(i,j)] += bd->board[i][j];
       }
     }
   }
-  if (squares < 64) {
-    return result;
+  return cts;
+}
+
+double static_eval (othello_bd *bd) {
+  board_counts cts = compute_board_counts(bd);
+  if (cts.squares_filled < 64) {
+    int result = 0;
+    for (int k = 0 ; k < 3 ; ++k) {
+      result += cts.counts[k]*(4-k);
+    }
+    return (double)result;
   } else {
-    return INFINITY*((result > 0) - (result < 0));
+    return INFINITY*((cts.score > 0) - (cts.score < 0));
   }
 }
 

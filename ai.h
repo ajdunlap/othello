@@ -2,6 +2,12 @@
 #define AI_H
 #include <stdbool.h>
 #include "board.h"
+typedef struct board_counts {
+  int squares_filled;
+  int score;
+  int counts[4];
+} board_counts;
+
 typedef struct minimax_node {
   othello_bd *bd;
   struct minimax_node_c *children;

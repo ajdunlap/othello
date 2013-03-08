@@ -24,7 +24,6 @@ void free_othello_bd (othello_bd *bd) {
   free((void*)bd);
 }
 
-
 double score (othello_bd *bd) {
   double result = 0;
   int squares = 0;
@@ -34,6 +33,17 @@ double score (othello_bd *bd) {
       if (bd->board[i][j]) {
         ++squares;
       }
+    }
+  }
+  return result;
+}
+
+int distance_from_edge (int x, int y) {
+  int result = x;
+  int choices[3] = { y, 7-x, 7-y };
+  for (int k = 0 ; k < 3 ; ++k) {
+    if (choices[k] < result) {
+      result = choices[k];
     }
   }
   return result;
