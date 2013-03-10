@@ -61,7 +61,8 @@ double score (othello_bd *bd) {
 }
 
 int distance_from_edge (int x, int y) {
-  //return square_types[(x<<3)&y];
+  return square_types[(x<<3)&y];
+  /*
   int result = x;
   int choices[3] = { y, 7-x, 7-y };
   for (int k = 0 ; k < 3 ; ++k) {
@@ -70,4 +71,5 @@ int distance_from_edge (int x, int y) {
     }
   }
   return result;
+  */
 }

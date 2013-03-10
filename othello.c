@@ -1,6 +1,7 @@
 #include <stdbool.h>
 #include <assert.h>
 #include <stdio.h>
+#include <sys/time.h>
 #include <string.h>
 #include <stdlib.h>
 #include "board.h"
@@ -28,6 +29,7 @@ bool play_human_turn_is_game_over(othello_bd *bd, int *x, int *y, int opp_x, int
     }
   } else {
     printf("Player %d passes.\n",bd->turn);
+    *x = *y = -1;
     return pass_turn_is_game_over(bd);
   }
 }
@@ -53,7 +55,7 @@ bool play_minimax_ai_turn_is_game_over(othello_bd *bd, int *x, int *y, int opp_x
     trees[i] = cut_tree_for_move(trees[i],opp_x,opp_y);
     assert(boards_equal(trees[i]->bd,bd));
   }
-  trees[i] = build_minimax_tree(trees[i],0,bd,bd->turn == 1 ? 2 : 2);
+  trees[i] = build_minimax_tree(trees[i],0,bd,bd->turn == 1 ? 5 : 5);
   if (have_legal_moves(bd)) {
     // show_othello_bd(stdout,bd);
     printf("Static evaluation: %f\n",static_eval(bd));
@@ -82,6 +84,10 @@ bool play_minimax_ai_turn_is_game_over(othello_bd *bd, int *x, int *y, int opp_x
 }
 
 int main (int argc, char **argv) {
+  struct timeval cur;
+  gettimeofday(&cur,NULL);
+  srand(time(NULL)); //cur.tv_usec);
+  printf("%d\n",(int)cur.tv_usec);
   othello_bd *bd = new_othello_bd();
   init_learning_ai_game_state(&lags);
   show_othello_bd(stdout,bd);
@@ -124,8 +130,8 @@ int main (int argc, char **argv) {
   } else {
     printf("Tie!\n");
   }
-  free_minimax_tree(trees[0]);
-  free_minimax_tree(trees[1]);
+  if (trees[0]) free_minimax_tree(trees[0]);
+  if (trees[1]) free_minimax_tree(trees[1]);
   print_learning_ai_game_state(&lags,result ? result / abs(result) : 0);
   free ((void*)bd);
   exit(0);

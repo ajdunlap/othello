@@ -3,13 +3,11 @@
 #include <string.h>
 #include <stdio.h>
 #include <stdint.h>
-#define NDEBUG
 #include <assert.h>
 #include <time.h>
 #include "board.h"
 #include "play.h"
 #include "show.h"
-#include <sys/time.h>
 #include "math.h"
 #include "ai.h"
 
@@ -21,7 +19,7 @@ minimax_node *new_minimax_node (othello_bd *bd, int depth, double alpha, double 
   node->beta = beta;
   node->has_weight = false;
   node->children = NULL;
-  node->last_x_checked = node->last_y_checked = 0;
+  node->next_x = node->next_y = 0;
   // node->weight = static_eval(node->bd);
   return node;
 }
@@ -74,6 +72,8 @@ bool update_stats_from_child_should_prune (minimax_node *node, minimax_node *chi
   return node->alpha > node->beta;
 }
 
+bool build_minimax_node_process_child_should_prune (minimax_node *node, minimax_node *child, int max_depth);
+
 void build_minimax_node_worker (minimax_node *node, int max_depth) {
   bool have_legal_moves = false;
   if (!max_depth) {
@@ -85,61 +85,48 @@ void build_minimax_node_worker (minimax_node *node, int max_depth) {
     }
     return;
   }
-  bool prune = false;
-  othello_bd *new_bd = new_othello_bd_copy (node->bd);
-  for (int i = 0 ; i < X_SIZE ; ++i) {
-    for (int j = 0 ; j < Y_SIZE ; ++j) {
+  minimax_node_c *child = node->children;
+  while (child) {
+    have_legal_moves = true;
+    if (build_minimax_node_process_child_should_prune (node,child->node,max_depth)) return;
+    child = child->next;
+  }
+  othello_bd new_bd;
+  //copy_othello_bd (&new_bd,node->bd);
+  for ( ; node->next_x < X_SIZE ; ++node->next_x) {
+    for ( ; node->next_y < Y_SIZE ; ++node->next_y) {
       // othello_bd *new_bd = copy_othello_bd(node->bd);
-      copy_othello_bd(new_bd,node->bd);
-      if (play_piece_if_legal(new_bd,i,j)) {
+      copy_othello_bd(&new_bd,node->bd);
+      if (play_piece_if_legal(&new_bd,node->next_x,node->next_y)) {
         have_legal_moves = true;
-        if (!prune) {
-          prune = build_minimax_node_create_child_should_prune (node, max_depth, new_bd,i,j);
-        } else {
-          minimax_node *child_node = new_minimax_node(new_bd,node->depth+1,node->alpha,node->beta);
-          add_minimax_child(node,i,j,child_node);
-          //build_minimax_node_create_child_should_prune (node, 1, new_bd,i,j);
-          /*minimax_node *child_node = new_minimax_node(new_bd,node->depth+1,node->alpha,node->beta);
-          add_minimax_child(node,i,j,child_node); */
-        }
-          // printf("!!!\n");
-          // free((void*)new_bd);
-          // return;
+        if (build_minimax_node_create_child_should_prune (node, max_depth, &new_bd,node->next_x,node->next_y)) return;
       }
     }
+    node->next_y = 0;
   }
   if (!have_legal_moves) {
+    // printf("foobar\n");
     //printf("NO LEGAL MOVES!\n");
-    copy_othello_bd(new_bd,node->bd);
-    new_bd->turn = -(new_bd->turn);
-    build_minimax_node_create_child_should_prune (node, max_depth, new_bd,-1,-1);
+    copy_othello_bd(&new_bd,node->bd);
+    new_bd.turn = -(new_bd.turn);
+    build_minimax_node_create_child_should_prune (node, max_depth, &new_bd,-1,-1);
     // free((void*)new_bd);
   }
-  free((void*)new_bd);
+  //free((void*)new_bd);
 }
 
 void iterative_build_minimax_node_worker (minimax_node *node, int max_depth);
 
 bool build_minimax_node_process_child_should_prune (minimax_node *node, minimax_node *child, int max_depth) {
+  child->alpha = node->alpha;
+  child->beta = node->beta;
   iterative_build_minimax_node_worker(child,max_depth-1);
   return update_stats_from_child_should_prune(node,child);
 }
 
 void iterative_build_minimax_node_worker (minimax_node *node, int max_depth) {
-  minimax_node_c *child = node->children;
-  node->alpha = -INFINITY;
-  node->beta = INFINITY;
-  if (!child) {
-    build_minimax_node_worker(node,max_depth);
-    assert(node->children);
-  } else { // this node has already been populated
-    while (child) {
-      if (build_minimax_node_process_child_should_prune (node,child->node,max_depth)) {
-        return;
-      }
-      child = child->next;
-    }
-  }
+  // minimax_node_c *child = node->children;
+  build_minimax_node_worker (node, max_depth);
 }
 
 minimax_node *build_minimax_tree (minimax_node *node, int max_nodes, othello_bd *bd, int max_depth) {
@@ -147,8 +134,10 @@ minimax_node *build_minimax_tree (minimax_node *node, int max_nodes, othello_bd 
     if (!node) {
       node = new_minimax_node(bd,0,-INFINITY,INFINITY);
     }
+    node->alpha = -INFINITY;
+    node->beta = INFINITY;
     assert(boards_equal(bd,node->bd));
-    iterative_build_minimax_node_worker(node,max_depth);
+    /*iterative_*/build_minimax_node_worker(node,max_depth);
     assert(node->children);
     return node;
   } else {
@@ -172,9 +161,7 @@ minimax_node *cut_tree_for_move (minimax_node *node, int x, int y) {
         //printf("hurah\n");
         //show_othello_bd(stdout,child->node->bd);
         new_node = child->node;
-        if (!child->node) {
-          assert(child->node);
-        }
+        assert(child->node);
         child = child->next;
         free((void*)current_child);
       } else {
@@ -183,7 +170,7 @@ minimax_node *cut_tree_for_move (minimax_node *node, int x, int y) {
         free((void*)current_child);
       }
     }
-    // assert(new_node);
+    assert(new_node);
   } else {
     //printf("xxx %d\n",node->bd->turn);
     node = build_minimax_tree (node, 0, node->bd, 2);
@@ -210,23 +197,22 @@ int free_minimax_tree (minimax_node *node) {
 
 void best_move (minimax_node *node, int *x, int *y) {
   // eval_minimax_tree(node);
-  show_minimax_tree(node);
+  //show_minimax_tree(node);
+  printf("finding best move...\n");
   assert(have_legal_moves(node->bd));
   minimax_node_c *child = node->children;
-  struct timeval cur;
-  gettimeofday(&cur,NULL);
-  srand(cur.tv_usec);
   double maxrandsofar = node->bd->turn == 1 ? -INFINITY : INFINITY;
   assert(child);
   bool done = false;
-  while (child && !done) {
-    double test = /*(rand() % 1000000) * */ child->node->weight;
+  while (child) {
+    double test = (rand() % 1000000) * child->node->weight;
     //printf("test:%f,%f\n",child->node->weight,test);
     if (node->bd->turn == 1) {
       if (test >= maxrandsofar) {
         *x = child->move_x;
         *y = child->move_y;
         maxrandsofar = test;
+        printf("ok %d %d\n",*x,*y);
         done = true;
       }
     } else {
@@ -234,11 +220,13 @@ void best_move (minimax_node *node, int *x, int *y) {
         *x = child->move_x;
         *y = child->move_y;
         maxrandsofar = test;
+        printf("ok %d %d\n",*x,*y);
         done = true;
       }
     }
     child = child->next;
   }
+  assert(done);
   if (!done) {
     //printf("%d %f\n",node->bd->turn,maxrandsofar);
     assert(done);
@@ -299,7 +287,7 @@ double hand_static_eval (othello_bd *bd) {
 
 double static_eval (othello_bd *bd) {
   //if (bd->turn == 1) {
-    return hand_static_eval(bd);
+    return sigmoid_static_eval(bd);
   //} else {
     //return sigmoid_static_eval(bd);
   //}
