@@ -5,6 +5,7 @@
 #define BOARD_H
 #define X_SIZE 8
 #define Y_SIZE 8
+#include <stdbool.h>
 
 typedef struct othello_bd {
   char board[X_SIZE][Y_SIZE];
@@ -14,11 +15,14 @@ typedef struct othello_bd {
 
 othello_bd *new_othello_bd (void);
 
-othello_bd *copy_othello_bd (othello_bd *old_bd);
+void copy_othello_bd (othello_bd *new_bd, othello_bd *old_bd);
+othello_bd *new_othello_bd_copy (othello_bd *old_bd);
 
 void free_othello_bd (othello_bd *bd);
 
 double score (othello_bd *bd);
 
 int distance_from_edge (int x, int y);
+
+bool boards_equal (othello_bd *b1,othello_bd *b2);
 #endif

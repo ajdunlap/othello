@@ -4,11 +4,11 @@
 #include <string.h>
 #include "board.h"
 
-int play_piece_or_legal_move (int play,othello_bd *bd,int x,int y) {
+bool play_piece_or_legal_move (int play,othello_bd *bd,int x,int y) {
   if (bd->board[x][y]) {
-    return 0;
+    return false;
   }
-  int legal_move = 0;
+  int legal_move = false;
   for (int x_dir = -1 ; x_dir <= 1 ; ++x_dir) {
     for (int y_dir = -1 ; y_dir <= 1 ; y_dir += (x_dir ? 1 : 2)) { // skip 0 if x_dir is 0
       int max_x = x;
@@ -23,10 +23,10 @@ int play_piece_or_legal_move (int play,othello_bd *bd,int x,int y) {
         int cur_y = y+y_dir;
         for ( ; cur_x*x_dir < max_x*x_dir || cur_y*y_dir < max_y*y_dir ; cur_x += x_dir, cur_y += y_dir) {
           if (play) {
-            legal_move = 1;
+            legal_move = true;
             bd->board[cur_x][cur_y] = bd->turn;
           } else {
-            return 1;
+            return true;
           }
         }
       }
