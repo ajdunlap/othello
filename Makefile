@@ -1,5 +1,5 @@
-CFLAGS=-std=c99 -Wall -g -pg
-LDFLAGS=-lm -pg
+CFLAGS=-std=c99 -Wall -g # -pg
+LDFLAGS=-lm # -pg
 
 SRC=board.c show.c play.c othello.c ai.c learning-ai.c random-ai.c
 OBJ=board.o show.o play.o othello.o ai.o learning-ai.o random-ai.o

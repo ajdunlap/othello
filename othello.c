@@ -53,13 +53,12 @@ bool play_minimax_ai_turn_is_game_over(othello_bd *bd, int *x, int *y, int opp_x
   int i = (1+bd->turn)>>1;
   if (trees[i]) {
     trees[i] = cut_tree_for_move(trees[i],opp_x,opp_y);
-    assert(boards_equal(trees[i]->bd,bd));
+    assert(!trees[i] || boards_equal(trees[i]->bd,bd));
   }
-  trees[i] = build_minimax_tree(trees[i],0,bd,bd->turn == 1 ? 6 : 6);
+  trees[i] = build_minimax_tree(trees[i],0,bd,bd->turn == 1 ? 4 : 4);
   if (have_legal_moves(bd)) {
     // show_othello_bd(stdout,bd);
     printf("Static evaluation: %f\n",static_eval(bd));
-    printf("turn: %d, i: %d\n",bd->turn,i);
     //show_minimax_tree(node);
     best_move(trees[i],x,y);
     // printf("Tree size: %d\n",free_minimax_tree(node));
@@ -78,7 +77,7 @@ bool play_minimax_ai_turn_is_game_over(othello_bd *bd, int *x, int *y, int opp_x
   }
   if (!game_over) {
     trees[i] = cut_tree_for_move(trees[i],*x,*y);
-    assert(boards_equal(trees[i]->bd,bd));
+    assert(!trees[i] || boards_equal(trees[i]->bd,bd));
   }
   return game_over;
 }
