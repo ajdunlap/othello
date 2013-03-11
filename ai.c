@@ -43,9 +43,9 @@ void add_minimax_child (minimax_node *node, int move_x, int move_y, minimax_node
 
 bool update_stats_from_child_should_prune (minimax_node *node, minimax_node *child_node);
 
-bool build_minimax_node_create_child_should_prune (minimax_node *node, int max_depth, othello_bd *new_bd, int i, int j) {
+bool build_minimax_node_create_child_should_prune (double (*static_eval)(othello_bd*),minimax_node *node, int max_depth, othello_bd *new_bd, int i, int j) {
   minimax_node *child_node = new_minimax_node(new_bd,node->depth+1,node->alpha,node->beta);
-  build_minimax_node_worker(child_node,max_depth-1);
+  build_minimax_node_worker(static_eval,child_node,max_depth-1);
   bool prune = update_stats_from_child_should_prune (node, child_node);
   add_minimax_child(node,i,j,child_node);
   return prune;
@@ -72,9 +72,9 @@ bool update_stats_from_child_should_prune (minimax_node *node, minimax_node *chi
   return node->alpha > node->beta;
 }
 
-bool build_minimax_node_process_child_should_prune (minimax_node *node, minimax_node *child, int max_depth);
+bool build_minimax_node_process_child_should_prune (double (*static_eval)(othello_bd*),minimax_node *node, minimax_node *child, int max_depth);
 
-void build_minimax_node_worker (minimax_node *node, int max_depth) {
+void build_minimax_node_worker (double (*static_eval)(othello_bd*),minimax_node *node, int max_depth) {
   bool have_legal_moves = false;
   if (!max_depth) {
     node->weight = node->alpha = node->beta = static_eval(node->bd);
@@ -88,7 +88,7 @@ void build_minimax_node_worker (minimax_node *node, int max_depth) {
   minimax_node_c *child = node->children;
   while (child) {
     have_legal_moves = true;
-    if (build_minimax_node_process_child_should_prune (node,child->node,max_depth)) return;
+    if (build_minimax_node_process_child_should_prune (static_eval,node,child->node,max_depth)) return;
     child = child->next;
   }
   othello_bd new_bd;
@@ -99,7 +99,7 @@ void build_minimax_node_worker (minimax_node *node, int max_depth) {
       copy_othello_bd(&new_bd,node->bd);
       if (play_piece_if_legal(&new_bd,node->next_x,node->next_y)) {
         have_legal_moves = true;
-        if (build_minimax_node_create_child_should_prune (node, max_depth, &new_bd,node->next_x,node->next_y)) return;
+        if (build_minimax_node_create_child_should_prune (static_eval,node, max_depth, &new_bd,node->next_x,node->next_y)) return;
       }
     }
     node->next_y = 0;
@@ -109,42 +109,29 @@ void build_minimax_node_worker (minimax_node *node, int max_depth) {
     //printf("NO LEGAL MOVES!\n");
     copy_othello_bd(&new_bd,node->bd);
     new_bd.turn = -(new_bd.turn);
-    build_minimax_node_create_child_should_prune (node, max_depth, &new_bd,-1,-1);
+    build_minimax_node_create_child_should_prune (static_eval,node, max_depth, &new_bd,-1,-1);
     // free((void*)new_bd);
   }
   //free((void*)new_bd);
 }
 
-void iterative_build_minimax_node_worker (minimax_node *node, int max_depth);
-
-bool build_minimax_node_process_child_should_prune (minimax_node *node, minimax_node *child, int max_depth) {
+bool build_minimax_node_process_child_should_prune (double (*static_eval)(othello_bd*),minimax_node *node, minimax_node *child, int max_depth) {
   child->alpha = node->alpha;
   child->beta = node->beta;
-  iterative_build_minimax_node_worker(child,max_depth-1);
+  build_minimax_node_worker(static_eval,child,max_depth-1);
   return update_stats_from_child_should_prune(node,child);
 }
 
-void iterative_build_minimax_node_worker (minimax_node *node, int max_depth) {
-  // minimax_node_c *child = node->children;
-  build_minimax_node_worker (node, max_depth);
-}
-
 minimax_node *build_minimax_tree (minimax_node *node, int max_nodes, othello_bd *bd, int max_depth) {
-  if (true) { //bd->turn == 1) {
-    if (!node) {
-      node = new_minimax_node(bd,0,-INFINITY,INFINITY);
-    }
-    node->alpha = -INFINITY;
-    node->beta = INFINITY;
-    assert(boards_equal(bd,node->bd));
-    /*iterative_*/build_minimax_node_worker(node,max_depth);
-    assert(node->children);
-    return node;
-  } else {
-    minimax_node *node = new_minimax_node(bd,0,-INFINITY,INFINITY);
-    build_minimax_node_worker(node,max_depth);
-    return node;
+  if (!node) {
+    node = new_minimax_node(bd,0,-INFINITY,INFINITY);
   }
+  node->alpha = -INFINITY;
+  node->beta = INFINITY;
+  assert(boards_equal(bd,node->bd));
+  build_minimax_node_worker(static_eval,node,max_depth);
+  assert(node->children);
+  return node;
 }
 
 minimax_node *cut_tree_for_move (minimax_node *node, int x, int y) {
@@ -284,6 +271,7 @@ double hand_static_eval (othello_bd *bd) {
     return cts.score ? INFINITY*((cts.score > 0) - (cts.score < 0)) : 0;
   }
 }
+
 double new_static_eval (othello_bd *bd) {
   board_counts cts = compute_board_counts(bd);
   if (cts.squares_filled < 64) {

@@ -38,8 +38,8 @@ void best_move (minimax_node *node, int *x, int *y);
 board_counts compute_board_counts (othello_bd *bd);
 double static_eval (othello_bd *bd);
 void show_minimax_tree (minimax_node *node);
-bool build_minimax_node_create_child_with_board (minimax_node *node, int max_depth, othello_bd *new_bd, int i, int j);
-void build_minimax_node_worker (minimax_node *node, int max_depth);
+bool build_minimax_node_create_child_with_board (double (*static_eval) (othello_bd*), minimax_node *node, int max_depth, othello_bd *new_bd, int i, int j);
+void build_minimax_node_worker (double (*static_eval) (othello_bd*), minimax_node *node, int max_depth);
 
 minimax_node *cut_tree_for_move(minimax_node*,int,int);
 
