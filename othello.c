@@ -86,7 +86,7 @@ bool play_minimax_ai_turn_is_game_over(othello_bd *bd, int *x, int *y, int opp_x
 int main (int argc, char **argv) {
   struct timeval cur;
   gettimeofday(&cur,NULL);
-  srand(time(NULL)); //cur.tv_usec);
+  srand(cur.tv_usec);
   printf("%d\n",(int)cur.tv_usec);
   othello_bd *bd = new_othello_bd();
   init_learning_ai_game_state(&lags);

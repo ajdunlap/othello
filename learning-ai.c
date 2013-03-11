@@ -15,6 +15,6 @@ void add_board (learning_ai_game_state *lags, othello_bd *bd) {
 
 void print_learning_ai_game_state (learning_ai_game_state *lags, int winner) {
   for (int k = 0 ; k < lags->turn_index ; ++k) {
-    fprintf(stderr,"%d %d %d %d %d %d\n",lags->cts[k].turn,lags->cts[k].counts[0],lags->cts[k].counts[1],lags->cts[k].counts[2],lags->cts[k].counts[3],winner);
+    fprintf(stderr,"%d %d %d %d %d %d %d\n",lags->cts[k].turn,lags->cts[k].squares_filled,lags->cts[k].counts[0],lags->cts[k].counts[1],lags->cts[k].counts[2],lags->cts[k].counts[3],winner);
   }
 }
