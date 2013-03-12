@@ -5,7 +5,16 @@
 #include "board.h"
 
 // int square_types[64] = { 0,1,1,1,1,1,1,0,1,2,3,4,4,3,2,1,1,2,3,4,4,3,2,1,1,2,3,4,4,3,2,1,1,2,3,4,4,3,2,1,1,2,3,4,4,3,2,1,1,2,3,4,4,3,2,1, 0,1,1,1,1,1,1,0 };
-int square_types[64] = { 0,0,0,0,0,0,0,0,0,1,2,3,3,2,1,0,0,1,2,3,3,2,1,0,0,1,2,3,3,2,1,0,0,1,2,3,3,2,1,0,0,1,2,3,3,2,1,0,0,1,2,3,3,2,1,0, 0,0,0,0,0,0,0,0 };
+//int square_types[64] = { 0,1,1,1,1,1,1,0,1,2,3,4,4,3,2,1,1,2,3,4,4,3,2,1,1,2,3,4,4,3,2,1,1,2,3,4,4,3,2,1,1,2,3,4,4,3,2,1,1,2,3,4,4,3,2,1, 0,1,1,1,1,1,1,0 };
+int square_types[64] = {
+  0,1,2,2,2,2,1,0,
+  1,2,2,2,2,2,2,1,
+  2,2,2,3,3,2,2,2,
+  2,2,3,3,3,3,2,2,
+  2,2,3,3,3,3,2,2,
+  2,2,2,3,3,3,2,2,
+  1,2,2,2,2,2,2,1,
+  0,1,2,2,2,2,1,0 };
 
 bool boards_equal (othello_bd *b1,othello_bd *b2) {
   if (b1->turn != b2->turn) {
@@ -23,12 +32,16 @@ bool boards_equal (othello_bd *b1,othello_bd *b2) {
 
 othello_bd *new_othello_bd (void) {
   othello_bd *bd = (othello_bd*)malloc(sizeof(struct othello_bd));
+  reset_othello_bd(bd);
+  return bd;
+}
+
+void reset_othello_bd (othello_bd *bd) {
   memset(bd->board,0,X_SIZE*Y_SIZE*sizeof(char));
   bd->board[3][3] = bd->board[4][4] = 1;
   bd->board[3][4] = bd->board[4][3] = -1;
   bd->turn = 1;
   bd->just_passed = false;
-  return bd;
 }
 
 void copy_othello_bd (othello_bd *new_bd, othello_bd *old_bd) {

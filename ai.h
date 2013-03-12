@@ -6,7 +6,7 @@ typedef struct board_counts {
   int turn;
   int squares_filled;
   int score;
-  int counts[4];
+  int counts[NUM_SQUARE_CLASSES];
 } board_counts;
 
 typedef struct minimax_node {
@@ -29,7 +29,7 @@ int free_minimax_tree (minimax_node *node);
 
 void add_minimax_child (minimax_node *node, int move_x, int move_y, minimax_node *child_node);
 
-minimax_node *build_minimax_tree (minimax_node *node,int max_nodes, othello_bd *bd, int max_depth);
+minimax_node *build_minimax_tree (double (*static_eval) (othello_bd*),minimax_node *node,int max_nodes, othello_bd *bd, int max_depth);
 
 void eval_minimax_tree (minimax_node *node);
 

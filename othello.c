@@ -11,8 +11,15 @@
 #include "random-ai.h"
 #include "learning-ai.h"
 
-learning_ai_game_state lags;
+#define MINIMAX_DEPTH 4
+
 minimax_node *trees[2] = { NULL, NULL };
+learning_ai_weights weights;
+
+double learning_static_eval (othello_bd *bd) {
+  board_counts cts = compute_board_counts(bd);
+  return weight_board_counts(&weights,&cts);
+}
 
 bool play_human_turn_is_game_over(othello_bd *bd, int *x, int *y, int opp_x, int opp_y) {
   if (have_legal_moves(bd)) {
@@ -55,19 +62,13 @@ bool play_minimax_ai_turn_is_game_over(othello_bd *bd, int *x, int *y, int opp_x
     trees[i] = cut_tree_for_move(trees[i],opp_x,opp_y);
     assert(!trees[i] || boards_equal(trees[i]->bd,bd));
   }
-  trees[i] = build_minimax_tree(trees[i],0,bd,bd->turn == 1 ? 4 : 4);
+  trees[i] = build_minimax_tree(bd->turn == 1 ? static_eval : learning_static_eval,trees[i],0,bd,bd->turn == 1 ? MINIMAX_DEPTH : MINIMAX_DEPTH);
   if (have_legal_moves(bd)) {
-    // show_othello_bd(stdout,bd);
-    printf("Static evaluation: %f\n",static_eval(bd));
-    //show_minimax_tree(node);
+    printf("Static evaluation: %f\n",learning_static_eval(bd));
     best_move(trees[i],x,y);
-    // printf("Tree size: %d\n",free_minimax_tree(node));
     printf("I played %d %d\n",*x,*y);
     int result = play_piece_if_legal(bd,*x,*y);
-    if (!result) {
-      printf("my move sucked...\n");
-    }
-    // show_othello_bd(stdout,bd);
+    assert(result);
     game_over = false;
   } else {
     printf("Player %d passes.\n",bd->turn);
@@ -83,16 +84,19 @@ bool play_minimax_ai_turn_is_game_over(othello_bd *bd, int *x, int *y, int opp_x
 }
 
 int main (int argc, char **argv) {
+  // initialize random number generator
   struct timeval cur;
   gettimeofday(&cur,NULL);
   srand(cur.tv_usec);
   printf("%d\n",(int)cur.tv_usec);
-  othello_bd *bd = new_othello_bd();
-  init_learning_ai_game_state(&lags);
-  show_othello_bd(stdout,bd);
-  bool game_over = 0;
-  int x,y;
+
+  // functions to play the game
   bool (*play[2]) (othello_bd*,int*,int*,int,int);
+
+  // how many games should we play?
+  int ngames = 1;
+
+  // parse command line
   if (argc >= 3) {
     for (int k = 0 ; k < 2 ; ++k) {
       if (!strcmp(argv[k+1],"human")) {
@@ -106,32 +110,65 @@ int main (int argc, char **argv) {
         exit(1);
       }
     }
+    if (argc >= 4) {
+      ngames = atoi(argv[3]);
+    }
   } else {
     play[0] = play_human_turn_is_game_over;
     play[1] = play_minimax_ai_turn_is_game_over;
   }
-  while (!game_over) {
-    if (bd->turn == 1) {
-      game_over = (play[0])(bd,&x,&y,x,y);
-      add_board(&lags,bd);
+
+  printf("ngames: %d",ngames);
+
+  init_weights(&weights);
+
+  int wins1 = 0, wins2 = 0, wins1backhalf = 0, wins2backhalf = 0;
+  for (int game = 0 ; game < ngames ; ++game) {
+    othello_bd the_bd;
+    othello_bd *bd = &the_bd;
+    // initialize learning AI machinery in case a function ends up using it
+    learning_ai_game_state lags;
+    init_learning_ai_game_state(&lags);
+
+    reset_othello_bd(bd);
+    bool game_over = false;
+    while (!game_over) {
       show_othello_bd(stdout,bd);
-    } else if (bd->turn == -1) {
-      game_over = (play[1])(bd,&x,&y,x,y);
+      int x,y;
+      game_over = (play[(1-bd->turn)>>1])(bd,&x,&y,x,y);
       add_board(&lags,bd);
-      show_othello_bd(stdout,bd);
     }
+    show_othello_bd(stdout,bd);
+
+    double winner = score(bd);
+
+    if (winner > 0) {
+      printf("Player 1 wins!\n");
+      if (game > ngames/2) {
+        ++wins1backhalf;
+      }
+      ++wins1;
+    } else if (winner < 0) {
+      printf("Player -1 wins!\n");
+      ++wins2;
+      if (game > ngames/2) {
+        ++wins2backhalf;
+      }
+    } else {
+      printf("Tie!\n");
+    }
+    for (int k = 0 ; k < 2 ; ++k) {
+      if (trees[k]) {
+        free_minimax_tree(trees[k]);
+        trees[k] = NULL;
+      }
+    }
+    print_learning_ai_game_state(&lags,winner ? winner / abs(winner) : 0);
+    update_weights_from_game(&weights,&lags,winner,10);
+    printf("WEIGHTS ");
+    print_weights(&weights);
+    printf("1: %d (%d); 2: %d (%d)\n",wins1,wins1backhalf,wins2,wins2backhalf);
   }
-  double result = score(bd);
-  if (result > 0) {
-    printf("Player 1 wins!\n");
-  } else if (result < 0) {
-    printf("Player -1 wins!\n");
-  } else {
-    printf("Tie!\n");
-  }
-  if (trees[0]) free_minimax_tree(trees[0]);
-  if (trees[1]) free_minimax_tree(trees[1]);
-  print_learning_ai_game_state(&lags,result ? result / abs(result) : 0);
-  free ((void*)bd);
+
   exit(0);
 }

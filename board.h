@@ -5,6 +5,7 @@
 #define BOARD_H
 #define X_SIZE 8
 #define Y_SIZE 8
+#define NUM_SQUARE_CLASSES 4
 #include <stdbool.h>
 
 typedef struct othello_bd {
@@ -14,6 +15,7 @@ typedef struct othello_bd {
 } othello_bd;
 
 othello_bd *new_othello_bd (void);
+void reset_othello_bd (othello_bd *bd);
 
 void copy_othello_bd (othello_bd *new_bd, othello_bd *old_bd);
 othello_bd *new_othello_bd_copy (othello_bd *old_bd);
