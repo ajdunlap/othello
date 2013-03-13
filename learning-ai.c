@@ -5,7 +5,7 @@
 #include <string.h>
 #include <math.h>
 
-#define LEARNING_RATE 1e-2
+#define LEARNING_RATE 1e-3
 #define REGULARIZATION_FACTOR 1e-5
 
 void init_learning_ai_game_state (learning_ai_game_state *lags) {
@@ -20,11 +20,15 @@ void add_board (learning_ai_game_state *lags, othello_bd *bd) {
 
 void init_weights (learning_ai_weights *wts) {
   for (int k = 0 ; k < NUM_SQUARE_CLASSES  ; ++k) {
-    wts->count_weights[k] = 0.1;
+    wts->count_weights[k] = 0;
     wts->count_times_filled_weights[k] = 0;
   }
   printf("INIT WEIGHTS ");
   print_weights(wts);
+}
+
+double square (double x) {
+  return x*x;
 }
 
 void print_learning_ai_game_state (learning_ai_game_state *lags, int winner) {
@@ -56,7 +60,7 @@ double sigmoidPrime (double x) {
 double weight_board_counts (learning_ai_weights *wts,board_counts *cts) {
   double result = 0;
   for (int k = 0 ; k < NUM_SQUARE_CLASSES ; ++k) {
-    result += wts->count_times_filled_weights[k] * cts->counts[k] * cts->squares_filled;
+    result += wts->count_times_filled_weights[k] * cts->counts[k] * sqrt(1-cts->squares_filled/64.0);
     result += wts->count_weights[k] * cts->counts[k];
   }
   //printf("result");
@@ -71,7 +75,7 @@ void update_weights_from_counts (learning_ai_weights *wts,board_counts *cts,int 
   double factor = sigmoid(-linsum*winner)*winner; // 2*sigmoidPrime(linsum)*(winner_predicted-winner);
   for (int k = 0 ; k < NUM_SQUARE_CLASSES ; ++k) {
     wts->count_weights[k] += LEARNING_RATE * factor * cts->counts[k] - REGULARIZATION_FACTOR*wts->count_weights[k];
-    wts->count_times_filled_weights[k] += 0.1*LEARNING_RATE * factor * cts->counts[k] * cts->squares_filled - 0.1*REGULARIZATION_FACTOR*wts->count_times_filled_weights[k];
+    wts->count_times_filled_weights[k] += LEARNING_RATE * factor * cts->counts[k] * sqrt(1-cts->squares_filled/64.0) - REGULARIZATION_FACTOR*wts->count_times_filled_weights[k];
     // wts->count_times_filled_weights[k] -= LEARNING_RATE * factor * cts->counts[k] * cts->squares_filled
                                           // + REGULARIZATION_FACTOR*wts->count_times_filled_weights[k];
   }

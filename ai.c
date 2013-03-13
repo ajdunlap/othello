@@ -253,7 +253,7 @@ double hand_static_eval (othello_bd *bd) {
   if (cts.squares_filled < 64) {
     int result = 0;
     for (int k = 0 ; k < NUM_SQUARE_CLASSES ; ++k) {
-      result += cts.counts[k]; //*(NUM_SQUARE_CLASSES-k);
+      result += cts.counts[k]*(NUM_SQUARE_CLASSES-k);
     }
     return (double)result;
   } else {

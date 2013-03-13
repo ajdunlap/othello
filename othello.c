@@ -11,7 +11,8 @@
 #include "random-ai.h"
 #include "learning-ai.h"
 
-#define MINIMAX_DEPTH 4
+#define MINIMAX_DEPTH_1 4
+#define MINIMAX_DEPTH_2 3
 
 minimax_node *trees[2] = { NULL, NULL };
 learning_ai_weights weights;
@@ -62,7 +63,7 @@ bool play_minimax_ai_turn_is_game_over(othello_bd *bd, int *x, int *y, int opp_x
     trees[i] = cut_tree_for_move(trees[i],opp_x,opp_y);
     assert(!trees[i] || boards_equal(trees[i]->bd,bd));
   }
-  trees[i] = build_minimax_tree(bd->turn == 1 ? static_eval : learning_static_eval,trees[i],0,bd,bd->turn == 1 ? MINIMAX_DEPTH : MINIMAX_DEPTH);
+  trees[i] = build_minimax_tree(bd->turn == 1 ? static_eval : learning_static_eval,trees[i],0,bd,bd->turn == 1 ? MINIMAX_DEPTH_1 : MINIMAX_DEPTH_2);
   if (have_legal_moves(bd)) {
     printf("Static evaluation: %f\n",learning_static_eval(bd));
     best_move(trees[i],x,y);
@@ -123,12 +124,13 @@ int main (int argc, char **argv) {
   init_weights(&weights);
 
   int wins1 = 0, wins2 = 0, wins1backhalf = 0, wins2backhalf = 0;
+
+  learning_ai_game_state *lags_arr = (learning_ai_game_state*)calloc(ngames,sizeof(learning_ai_game_state));
   for (int game = 0 ; game < ngames ; ++game) {
     othello_bd the_bd;
     othello_bd *bd = &the_bd;
     // initialize learning AI machinery in case a function ends up using it
-    learning_ai_game_state lags;
-    init_learning_ai_game_state(&lags);
+    init_learning_ai_game_state(&lags_arr[game]);
 
     reset_othello_bd(bd);
     bool game_over = false;
@@ -136,7 +138,7 @@ int main (int argc, char **argv) {
       show_othello_bd(stdout,bd);
       int x,y;
       game_over = (play[(1-bd->turn)>>1])(bd,&x,&y,x,y);
-      add_board(&lags,bd);
+      add_board(&lags_arr[game],bd);
     }
     show_othello_bd(stdout,bd);
 
@@ -163,11 +165,15 @@ int main (int argc, char **argv) {
         trees[k] = NULL;
       }
     }
-    print_learning_ai_game_state(&lags,winner ? winner / abs(winner) : 0);
-    update_weights_from_game(&weights,&lags,winner,10);
-    printf("WEIGHTS ");
+    print_learning_ai_game_state(&lags_arr[game],winner ? winner / abs(winner) : 0);
+    for (int l = 0 ; l < 10 ; ++l) {
+      for (int k = game >= 0 ? game : 0 ; k <= game ; ++k) {
+        update_weights_from_game(&weights,&lags_arr[k],winner,1);
+      }
+    }
+    printf("%2d WEIGHTS ",winner > 0);
     print_weights(&weights);
-    printf("1: %d (%d); 2: %d (%d)\n",wins1,wins1backhalf,wins2,wins2backhalf);
+    printf("SCORE: 1: %d (%d); 2: %d (%d)\n",wins1,wins1backhalf,wins2,wins2backhalf);
   }
 
   exit(0);
