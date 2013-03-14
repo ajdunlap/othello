@@ -13,8 +13,7 @@
 #include "random-ai.h"
 #include "learning-ai.h"
 
-#define MINIMAX_DEPTH_1 4
-#define MINIMAX_DEPTH_2 3
+#define DEFAULT_MINIMAX_DEPTH 4
 
 minimax_node *trees[2] = { NULL, NULL };
 learning_ai_weights weights;
@@ -83,7 +82,7 @@ bool play_minimax_ai_turn_is_game_over(othello_bd *bd, int *x, int *y, int opp_x
 }
 
 bool play_hand_minimax_ai_turn_is_game_over(othello_bd *bd, int *x, int *y, int opp_x, int opp_y, int depth) {
-  return play_minimax_ai_turn_is_game_over(bd, x, y, opp_x, opp_y, depth, static_eval);
+  return play_minimax_ai_turn_is_game_over(bd, x, y, opp_x, opp_y, depth, hand_static_eval);
 }
 
 bool play_learning_minimax_ai_turn_is_game_over(othello_bd *bd, int *x, int *y, int opp_x, int opp_y, int depth) {
@@ -118,7 +117,7 @@ int main (int argc, char **argv) {
   bool quiet = false;
 
   // minimax tree search depths
-  int depth1 = 4, depth2 = 4;
+  int depth1 = DEFAULT_MINIMAX_DEPTH, depth2 = DEFAULT_MINIMAX_DEPTH;
 
   // parse command line opts
   int c;
