@@ -6,7 +6,7 @@
 #include <math.h>
 
 #define LEARNING_RATE 1e-3
-#define REGULARIZATION_FACTOR 0 //# 1e-6
+#define REGULARIZATION_FACTOR 1e-6
 
 void init_learning_ai_game_state (learning_ai_game_state *lags) {
   lags->turns = 0;
@@ -43,19 +43,8 @@ double sigmoid (double x) {
 }
 
 double sigmoidPrime (double x) {
-  /*
-  if (x > 1000) {
-    x = 1000;
-  } else if (x < -1000) {
-    x = -1000;
-  }
-  double ex = exp(-x);
-  double result = 2*ex/((1+ex)*(1+ex));
-  */
   double y = sigmoid(x);
   return 2*(1-y)*(y+1);
-  //assert(!isnan(result));
-  //return result;
 }
 
 double weight_board_counts (learning_ai_weights *wts,board_counts *cts) {
@@ -64,21 +53,15 @@ double weight_board_counts (learning_ai_weights *wts,board_counts *cts) {
     result += wts->count_times_filled_weights[k] * cts->counts[k] * sqrt(1-cts->squares_filled/64.0);
     result += wts->count_weights[k] * cts->counts[k];
   }
-  //printf("result");
-  //print_weights(wts);
-  //printf("result:%f\n",result);
   return result;
 }
 
 void update_weights_from_counts (learning_ai_weights *wts,board_counts *cts,int winner) {
   double linsum = weight_board_counts (wts,cts);
-  // double winner_predicted = sigmoid(linsum);
-  double factor = sigmoid(-linsum*winner)*winner; // 2*sigmoidPrime(linsum)*(winner_predicted-winner);
+  double factor = sigmoid(-linsum*winner)*winner;
   for (int k = 0 ; k < NUM_SQUARE_CLASSES ; ++k) {
     wts->count_weights[k] += LEARNING_RATE * factor * cts->counts[k] - REGULARIZATION_FACTOR*wts->count_weights[k];
     wts->count_times_filled_weights[k] += LEARNING_RATE * factor * cts->counts[k] * sqrt(1-cts->squares_filled/64.0) - REGULARIZATION_FACTOR*wts->count_times_filled_weights[k];
-    // wts->count_times_filled_weights[k] -= LEARNING_RATE * factor * cts->counts[k] * cts->squares_filled
-                                          // + REGULARIZATION_FACTOR*wts->count_times_filled_weights[k];
   }
 }
 

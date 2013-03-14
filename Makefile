@@ -1,4 +1,4 @@
-CFLAGS=-std=c99 -Wall -O2 # -pg
+CFLAGS=-std=c99 -Wall -g # -pg
 LDFLAGS=-lm # -pg
 
 SRC=board.c show.c play.c othello.c ai.c learning-ai.c random-ai.c
