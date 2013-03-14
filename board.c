@@ -6,7 +6,7 @@
 
 // int square_types[64] = { 0,1,1,1,1,1,1,0,1,2,3,4,4,3,2,1,1,2,3,4,4,3,2,1,1,2,3,4,4,3,2,1,1,2,3,4,4,3,2,1,1,2,3,4,4,3,2,1,1,2,3,4,4,3,2,1, 0,1,1,1,1,1,1,0 };
 //int square_types[64] = { 0,1,1,1,1,1,1,0,1,2,3,4,4,3,2,1,1,2,3,4,4,3,2,1,1,2,3,4,4,3,2,1,1,2,3,4,4,3,2,1,1,2,3,4,4,3,2,1,1,2,3,4,4,3,2,1, 0,1,1,1,1,1,1,0 };
-int square_types[64] = {
+/*int square_types[64] = {
   0,1,2,2,2,2,1,0,
   1,2,2,2,2,2,2,1,
   2,2,2,3,3,2,2,2,
@@ -14,7 +14,17 @@ int square_types[64] = {
   2,2,3,3,3,3,2,2,
   2,2,2,3,3,3,2,2,
   1,2,2,2,2,2,2,1,
-  0,1,2,2,2,2,1,0 };
+  0,1,2,2,2,2,1,0 };*/
+
+int square_types[64] = {
+  0,1,2,3,3,2,1,0,
+  1,4,5,6,6,5,4,1,
+  2,5,7,8,8,7,5,2,
+  3,6,8,9,9,8,6,3,
+  3,6,8,9,9,8,6,3,
+  2,5,7,8,8,7,5,2,
+  1,4,5,6,6,5,4,1,
+  0,1,2,3,3,2,1,0};
 
 bool boards_equal (othello_bd *b1,othello_bd *b2) {
   if (b1->turn != b2->turn) {
@@ -73,9 +83,24 @@ double score (othello_bd *bd) {
   return result;
 }
 
-int distance_from_edge (int x, int y) {
+int square_type (int x, int y) {
   return square_types[(x<<3)^y];
-  /*
+}
+
+int type_hand_score(int t) {
+  switch (t) {
+    case 0:
+      return 4;
+    case 1: case 4:
+      return 0;
+    case 2: case 3:
+      return 3;
+    default:
+      return 1;
+  }
+}
+
+int distance_from_edge (int x, int y) {
   int result = x;
   int choices[3] = { y, 7-x, 7-y };
   for (int k = 0 ; k < 3 ; ++k) {
@@ -84,5 +109,4 @@ int distance_from_edge (int x, int y) {
     }
   }
   return result;
-  */
 }

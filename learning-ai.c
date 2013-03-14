@@ -6,7 +6,7 @@
 #include <math.h>
 
 #define LEARNING_RATE 1e-3
-#define REGULARIZATION_FACTOR 1e-5
+#define REGULARIZATION_FACTOR 0 //# 1e-6
 
 void init_learning_ai_game_state (learning_ai_game_state *lags) {
   lags->turns = 0;
@@ -15,6 +15,7 @@ void init_learning_ai_game_state (learning_ai_game_state *lags) {
 void add_board (learning_ai_game_state *lags, othello_bd *bd) {
   assert (lags->turns <= 128);
   lags->cts[lags->turns] = compute_board_counts(bd);
+  assert(lags);
   ++lags->turns;
 }
 
@@ -91,6 +92,6 @@ void update_weights_from_game (learning_ai_weights *wts, learning_ai_game_state 
 
 void print_weights (learning_ai_weights *wts) {
   for (int k = 0 ; k < NUM_SQUARE_CLASSES; ++k) {
-    printf("%d: %f %f /",k,wts->count_weights[k],wts->count_times_filled_weights[k]);
+    printf("%d: %+.3f %+.3f /",k,wts->count_weights[k],wts->count_times_filled_weights[k]);
   }
 }

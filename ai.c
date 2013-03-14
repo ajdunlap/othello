@@ -217,7 +217,14 @@ void best_move (minimax_node *node, int *x, int *y) {
 }
 
 void init_board_counts (board_counts *cts) {
-  memset(cts,0,sizeof(board_counts));
+  // printf("BCSIZE: %ld\n",sizeof(board_counts));
+  cts->turn = 0;
+  cts->squares_filled = 0;
+  cts->score = 0;
+  for (int k = 0 ; k < NUM_SQUARE_CLASSES ; ++k) {
+    cts->counts[k] = 0;
+  }
+  // memset(cts,0,sizeof(board_counts));
 }
 
 board_counts compute_board_counts (othello_bd *bd) {
@@ -229,7 +236,7 @@ board_counts compute_board_counts (othello_bd *bd) {
         cts.turn = bd->turn;
         ++cts.squares_filled;
         cts.score += bd->board[i][j];
-        cts.counts[distance_from_edge(i,j)] += bd->board[i][j];
+        cts.counts[square_type(i,j)] += bd->board[i][j];
       }
     }
   }
@@ -253,7 +260,7 @@ double hand_static_eval (othello_bd *bd) {
   if (cts.squares_filled < 64) {
     int result = 0;
     for (int k = 0 ; k < NUM_SQUARE_CLASSES ; ++k) {
-      result += cts.counts[k]*(NUM_SQUARE_CLASSES-k);
+      result += cts.counts[k]*type_hand_score(k); // *(NUM_SQUARE_CLASSES-k);
     }
     return (double)result;
   } else {

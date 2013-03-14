@@ -165,13 +165,13 @@ int main (int argc, char **argv) {
         trees[k] = NULL;
       }
     }
-    print_learning_ai_game_state(&lags_arr[game],winner ? winner / abs(winner) : 0);
+    // print_learning_ai_game_state(&lags_arr[game],winner ? winner / abs(winner) : 0);
     for (int l = 0 ; l < 10 ; ++l) {
       for (int k = game >= 0 ? game : 0 ; k <= game ; ++k) {
         update_weights_from_game(&weights,&lags_arr[k],winner,1);
       }
     }
-    printf("%2d WEIGHTS ",winner > 0);
+    printf("WEIGHTS ");
     print_weights(&weights);
     printf("SCORE: 1: %d (%d); 2: %d (%d)\n",wins1,wins1backhalf,wins2,wins2backhalf);
   }

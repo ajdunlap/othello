@@ -5,7 +5,7 @@
 #define BOARD_H
 #define X_SIZE 8
 #define Y_SIZE 8
-#define NUM_SQUARE_CLASSES 4
+#define NUM_SQUARE_CLASSES 10
 #include <stdbool.h>
 
 typedef struct othello_bd {
@@ -24,7 +24,9 @@ void free_othello_bd (othello_bd *bd);
 
 double score (othello_bd *bd);
 
+int type_hand_score(int t);
 int distance_from_edge (int x, int y);
+int square_type (int x, int y);
 
 bool boards_equal (othello_bd *b1,othello_bd *b2);
 #endif
