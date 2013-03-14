@@ -243,18 +243,6 @@ board_counts compute_board_counts (othello_bd *bd) {
   return cts;
 }
 
-//double sigmoid (double x) {
-  //return e^(-
-
-double sigmoid_static_eval (othello_bd *bd) {
-  board_counts cts = compute_board_counts(bd);
-  if (cts.squares_filled < 64) {
-    return 2.06104168*cts.counts[0]  -1.13611125*cts.counts[1] + 0.08707414 * cts.counts[2] + 0.24516188*cts.counts[3];
-  } else {
-    return cts.score ? INFINITY*((cts.score > 0) - (cts.score < 0)) : 0;
-  }
-}
-
 double hand_static_eval (othello_bd *bd) {
   board_counts cts = compute_board_counts(bd);
   if (cts.squares_filled < 64) {
@@ -266,30 +254,6 @@ double hand_static_eval (othello_bd *bd) {
   } else {
     return cts.score ? INFINITY*((cts.score > 0) - (cts.score < 0)) : 0;
   }
-}
-
-double new_static_eval (othello_bd *bd) {
-  board_counts cts = compute_board_counts(bd);
-  if (cts.squares_filled < 64) {
-    return 0.85419261*cts.counts[0] -0.37338898*cts.counts[1] -0.04327268*cts.counts[2] + 0.05323424*cts.counts[3] +cts.squares_filled * (1.27326022*cts.counts[0] + 0.33959431*cts.counts[1] +  0.46487779 * cts.counts[2]+  0.5720004*cts.counts[3]);
-  } else {
-    return cts.score ? INFINITY*((cts.score > 0) - (cts.score < 0)) : 0;
-  }
-}
-
-double static_eval (othello_bd *bd) {
-  return hand_static_eval(bd);
-  //if (bd->turn == 1) {
-  /*
-  if (bd->turn == 1) {
-    return new_static_eval(bd);
-  } else {
-    return hand_static_eval(bd);
-  }
-  */
-  //} else {
-    //return sigmoid_static_eval(bd);
-  //}
 }
 
 void show_minimax_tree_worker (minimax_node *node) {
