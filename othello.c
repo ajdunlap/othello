@@ -277,5 +277,7 @@ int main (int argc, char **argv) {
     printf("SCORE: 1: %d (%d); 2: %d (%d)\n",wins1,wins1backhalf,wins2,wins2backhalf);
   }
 
+  free((void*)lags_arr);
+
   exit(0);
 }
