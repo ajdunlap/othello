@@ -1,0 +1,21 @@
+To build:
+
+  make
+
+To play against the computer:
+
+  othello
+
+For information on more options:
+
+  othello -h
+
+For testing the AI to give the statistics I gave in class regarding
+the performance of the learning AI against the non-learning AI, I
+would generally give a command like
+
+  othello -q -n 200 cpu learning-cpu
+
+to play 200 games between the non-learning AI and the learning AI in
+quiet (-q) mode (i.e. don't print out every board, just say who won
+each game).

@@ -90,7 +90,7 @@ bool play_learning_minimax_ai_turn_is_game_over(othello_bd *bd, int *x, int *y, 
 }
 
 void usage () {
-  fprintf(stderr,"Usage: othello [-n NGAMES] [-q] PLAYER1 PLAYER2\n"
+  fprintf(stderr,"Usage: othello [-d DEPTH|DEPTH1,DEPTH2] [-n NGAMES] [-q] PLAYER1 PLAYER2\n"
                  "PLAYER1 and PLAYER2 can be any of human, cpu, learning-cpu, random\n"
                  "Options:\n"
                  "  -d [DEPTH|DEPTH1,DEPTH2]  : specify depth of minimax tree search\n"
