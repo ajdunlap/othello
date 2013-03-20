@@ -40,3 +40,22 @@ Descriptions of the different AI modes available:
           creating new AIs - if the AI can't beat an AI that is just playing
           randomly, there is probably a sign flipped in the static evaluation
           function or something.
+
+Tour of the code:
+
+  board.[ch] contain basic type definitions and helper functions for working
+    with the Othello board.
+
+  play.[ch] contains functions for checking if moves are legal and actually
+    executing moves on the board.
+
+  othello.c contains the main function and helper functions for the various AIs
+    to actually interact with the running game state.
+
+  show.[ch] contain output functions.
+
+  ai.[ch] contain the functions for the minimax AIs (naive, hand, and learning).
+
+  learning-ai.[ch] contain the functions specific to the learning AI.
+
+  random.[ch] contains the functions for the random AI.
