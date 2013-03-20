@@ -18,18 +18,22 @@
 minimax_node *trees[2] = { NULL, NULL };
 learning_ai_weights weights;
 
+// static evaluation function for learning AI
+// included here because we need access to the global
+// weights variable
 double learning_static_eval (othello_bd *bd) {
   board_counts cts = compute_board_counts(bd);
   return weight_board_counts(&weights,&cts);
 }
 
+// play a turn by asking the human for a move
 bool play_human_turn_is_game_over(othello_bd *bd, int *x, int *y, int opp_x, int opp_y, int depth) {
   if (have_legal_moves(bd)) {
     while (true) {
-      printf("Move for player %d? > ",bd->turn);
+      printf("Move for player %d? (type row column) > ",bd->turn);
       if (scanf("%d %d",x,y) != 2) {
         while (getchar() != '\n'); // throw away this line
-        printf("Bad move format; enter x y.\n");
+        printf("Bad move format; enter row column.\n");
       } else if (!play_piece_if_legal(bd,*x,*y)) {
         printf("Illegal move\n");
       } else {
@@ -43,6 +47,7 @@ bool play_human_turn_is_game_over(othello_bd *bd, int *x, int *y, int opp_x, int
   }
 }
 
+// play a random move
 bool play_random_turn_is_game_over(othello_bd *bd, int *x, int *y, int opp_x, int opp_y, int depth) {
   random_move(bd,x,y);
   if (*x != -1) {
@@ -54,6 +59,9 @@ bool play_random_turn_is_game_over(othello_bd *bd, int *x, int *y, int opp_x, in
   }
 }
 
+// play a move using a minimax AI, given a static evaluation function to use
+// the helper functions below are "partial applications" of this function with
+// the static evaluation functions that we have
 bool play_minimax_ai_turn_is_game_over(othello_bd *bd, int *x, int *y, int opp_x, int opp_y, int depth, double (*static_eval)(othello_bd*)) {
   bool game_over;
   int i = (1+bd->turn)>>1;
@@ -78,18 +86,22 @@ bool play_minimax_ai_turn_is_game_over(othello_bd *bd, int *x, int *y, int opp_x
   return game_over;
 }
 
+// play AI turn with hand-tuned static evaluation
 bool play_hand_minimax_ai_turn_is_game_over(othello_bd *bd, int *x, int *y, int opp_x, int opp_y, int depth) {
   return play_minimax_ai_turn_is_game_over(bd, x, y, opp_x, opp_y, depth, hand_static_eval);
 }
 
+// play AI turn with learning static evaluation
 bool play_learning_minimax_ai_turn_is_game_over(othello_bd *bd, int *x, int *y, int opp_x, int opp_y, int depth) {
   return play_minimax_ai_turn_is_game_over(bd, x, y, opp_x, opp_y, depth, learning_static_eval);
 }
 
+// play AI turn with naive static evaluation
 bool play_naive_minimax_ai_turn_is_game_over(othello_bd *bd, int *x, int *y, int opp_x, int opp_y, int depth) {
   return play_minimax_ai_turn_is_game_over(bd, x, y, opp_x, opp_y, depth, naive_static_eval);
 }
 
+// print usage message
 void usage () {
   fprintf(stderr,"Usage: othello [-d DEPTH|DEPTH1,DEPTH2] [-n NGAMES] [-q] [PLAYER1 PLAYER2]\n"
                  "PLAYER1 and PLAYER2 can be any of human, hand-ai, naive-ai, learning-ai, random.\n"
@@ -179,6 +191,7 @@ int main (int argc, char **argv) {
     }
   }
 
+  // is either one of the players human?
   bool have_human_player = false;
 
   for (int k = optind ; k < argc && k < 2 + optind ; ++k) {
@@ -209,7 +222,6 @@ int main (int argc, char **argv) {
     play[1] = play_hand_minimax_ai_turn_is_game_over;
   }
 
-
   if (quiet && have_human_player) {
     fprintf(stderr,"WARNING: Quiet mode enabled but a human is playing.\n"
                    "         This is going to make the game awfully hard for her or him!\n");
@@ -220,6 +232,7 @@ int main (int argc, char **argv) {
   int wins1 = 0, wins2 = 0, wins1backhalf = 0, wins2backhalf = 0;
 
   learning_ai_game_state *lags_arr = (learning_ai_game_state*)calloc(ngames,sizeof(learning_ai_game_state));
+
   for (int game = 0 ; game < ngames ; ++game) {
     othello_bd the_bd;
     othello_bd *bd = &the_bd;
@@ -277,9 +290,9 @@ int main (int argc, char **argv) {
         update_weights_from_game(&weights,&lags_arr[k],winner,1);
       }
     }
-    printf("WEIGHTS ");
+    printf("WEIGHTS: ");
     print_weights(&weights);
-    printf("SCORE: 1: %d (%d); 2: %d (%d)\n",wins1,wins1backhalf,wins2,wins2backhalf);
+    printf("\nSCORE: 1: %d (%d); 2: %d (%d)\n",wins1,wins1backhalf,wins2,wins2backhalf);
   }
 
   free((void*)lags_arr);

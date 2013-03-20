@@ -12,6 +12,7 @@ void init_learning_ai_game_state (learning_ai_game_state *lags) {
   lags->turns = 0;
 }
 
+// add a board for the next ply to the game state
 void add_board (learning_ai_game_state *lags, othello_bd *bd) {
   assert (lags->turns <= 128);
   lags->cts[lags->turns] = compute_board_counts(bd);
@@ -24,12 +25,8 @@ void init_weights (learning_ai_weights *wts) {
     wts->count_weights[k] = 0;
     wts->count_times_filled_weights[k] = 0;
   }
-  printf("INIT WEIGHTS ");
+  printf("INITIAL WEIGHTS: ");
   print_weights(wts);
-}
-
-double square (double x) {
-  return x*x;
 }
 
 void print_learning_ai_game_state (learning_ai_game_state *lags, int winner) {
@@ -38,15 +35,12 @@ void print_learning_ai_game_state (learning_ai_game_state *lags, int winner) {
   }
 }
 
+// sigmoid function
 double sigmoid (double x) {
   return 1/(1+exp(-x));
 }
 
-double sigmoidPrime (double x) {
-  double y = sigmoid(x);
-  return 2*(1-y)*(y+1);
-}
-
+// apply our weights to a set of board counts
 double weight_board_counts (learning_ai_weights *wts,board_counts *cts) {
   double result = 0;
   for (int k = 0 ; k < NUM_SQUARE_CLASSES ; ++k) {
@@ -56,6 +50,8 @@ double weight_board_counts (learning_ai_weights *wts,board_counts *cts) {
   return result;
 }
 
+// update the weights given a single set of counts and the winner of the game
+// this uses the derivative of the log-likelihood function
 void update_weights_from_counts (learning_ai_weights *wts,board_counts *cts,int winner) {
   double linsum = weight_board_counts (wts,cts);
   double factor = sigmoid(-linsum*winner)*winner;
@@ -65,6 +61,7 @@ void update_weights_from_counts (learning_ai_weights *wts,board_counts *cts,int 
   }
 }
 
+// update the weights based on an entire game, including the winner
 void update_weights_from_game (learning_ai_weights *wts, learning_ai_game_state *lags, int winner, int n) {
   for (int rep = 0 ; rep < n ; ++rep) {
     for (int k = 0 ; k < lags->turns ; ++k) {
@@ -73,6 +70,7 @@ void update_weights_from_game (learning_ai_weights *wts, learning_ai_game_state 
   }
 }
 
+// for debugging
 void print_weights (learning_ai_weights *wts) {
   for (int k = 0 ; k < NUM_SQUARE_CLASSES; ++k) {
     printf("%d: %+.3f %+.3f /",k,wts->count_weights[k],wts->count_times_filled_weights[k]);

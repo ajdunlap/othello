@@ -1,3 +1,5 @@
+Written by Alexander Dunlap, Winter 2013
+
 To build:
 
   make
@@ -9,6 +11,12 @@ To play against the computer:
 For information on more options:
 
   othello -h
+
+If you want to play against a friend,
+
+  othello human human
+
+will keep the AIs out of it all together and just let you play.
 
 For testing the AI to give the statistics I gave in class regarding
 the performance of the learning AI against the non-learning AI, I

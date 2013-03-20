@@ -11,6 +11,7 @@
 #include "math.h"
 #include "ai.h"
 
+// create a new minimax node, leaving the weight uninitialized
 minimax_node *new_minimax_node (othello_bd *bd, int depth, double alpha, double beta) {
   minimax_node *node = (minimax_node*)malloc(sizeof(struct minimax_node));
   node->bd = new_othello_bd_copy(bd);
@@ -20,10 +21,10 @@ minimax_node *new_minimax_node (othello_bd *bd, int depth, double alpha, double 
   node->has_weight = false;
   node->children = NULL;
   node->next_x = node->next_y = 0;
-  // node->weight = static_eval(node->bd);
   return node;
 }
 
+// add a child to a minimax node
 void add_minimax_child (minimax_node *node, int move_x, int move_y, minimax_node *child_node) {
   minimax_node_c *current_child = node->children;
   minimax_node_c *child = (minimax_node_c*)malloc(sizeof(struct minimax_node_c));
@@ -43,6 +44,8 @@ void add_minimax_child (minimax_node *node, int move_x, int move_y, minimax_node
 
 bool update_stats_from_child_should_prune (minimax_node *node, minimax_node *child_node);
 
+// build a new child and return
+// true if we should prune - i.e. stop processing the parent node
 bool build_minimax_node_create_child_should_prune (double (*static_eval)(othello_bd*),minimax_node *node, int max_depth, othello_bd *new_bd, int i, int j) {
   minimax_node *child_node = new_minimax_node(new_bd,node->depth+1,node->alpha,node->beta);
   build_minimax_node_worker(static_eval,child_node,max_depth-1);
@@ -51,6 +54,8 @@ bool build_minimax_node_create_child_should_prune (double (*static_eval)(othello
   return prune;
 }
 
+// propagate alpha/beta values from child to parent and return true if we should
+// prune - i.e. stop processing the parent node
 bool update_stats_from_child_should_prune (minimax_node *node, minimax_node *child_node) {
   if (node->bd->turn == 1) {
     node->alpha = fmax (node->alpha, child_node->beta);
@@ -74,6 +79,7 @@ bool update_stats_from_child_should_prune (minimax_node *node, minimax_node *chi
 
 bool build_minimax_node_process_child_should_prune (double (*static_eval)(othello_bd*),minimax_node *node, minimax_node *child, int max_depth);
 
+// create a new node of the tree
 void build_minimax_node_worker (double (*static_eval)(othello_bd*),minimax_node *node, int max_depth) {
   bool have_legal_moves = false;
   if (!max_depth) {
@@ -111,6 +117,8 @@ void build_minimax_node_worker (double (*static_eval)(othello_bd*),minimax_node 
   }
 }
 
+// recurse to a child we have already built (for a previous turn) and return
+// true if we should prune - i.e. stop processing the parent node
 bool build_minimax_node_process_child_should_prune (double (*static_eval)(othello_bd*),minimax_node *node, minimax_node *child, int max_depth) {
   child->alpha = node->alpha;
   child->beta = node->beta;
@@ -118,6 +126,7 @@ bool build_minimax_node_process_child_should_prune (double (*static_eval)(othell
   return update_stats_from_child_should_prune(node,child);
 }
 
+// build a minimax tree
 minimax_node *build_minimax_tree (double (*static_eval)(othello_bd*),minimax_node *node, int max_nodes, othello_bd *bd, int max_depth) {
   if (!node) {
     node = new_minimax_node(bd,0,-INFINITY,INFINITY);
@@ -165,6 +174,7 @@ minimax_node *cut_tree_for_move (minimax_node *node, int x, int y) {
   //return NULL;
 }
 
+// free memory for a minimax tree
 int free_minimax_tree (minimax_node *node) {
   int nodes = 1;
   minimax_node_c *child = node->children;
@@ -179,9 +189,9 @@ int free_minimax_tree (minimax_node *node) {
   return nodes;
 }
 
+// look at a minimax tree that has already been
+// processed and get the best move for the first player
 void best_move (minimax_node *node, int *x, int *y) {
-  // eval_minimax_tree(node);
-  //show_minimax_tree(node);
   assert(have_legal_moves(node->bd));
   minimax_node_c *child = node->children;
   double maxrandsofar = node->bd->turn == 1 ? -INFINITY : INFINITY;
@@ -189,13 +199,11 @@ void best_move (minimax_node *node, int *x, int *y) {
   bool done = false;
   while (child) {
     double test = (rand() % 1000000) * child->node->weight;
-    //printf("test:%f,%f\n",child->node->weight,test);
     if (node->bd->turn == 1) {
       if (test >= maxrandsofar) {
         *x = child->move_x;
         *y = child->move_y;
         maxrandsofar = test;
-        //printf("ok %d %d\n",*x,*y);
         done = true;
       }
     } else {
@@ -203,28 +211,21 @@ void best_move (minimax_node *node, int *x, int *y) {
         *x = child->move_x;
         *y = child->move_y;
         maxrandsofar = test;
-        //printf("ok %d %d\n",*x,*y);
         done = true;
       }
     }
     child = child->next;
   }
   assert(done);
-  if (!done) {
-    //printf("%d %f\n",node->bd->turn,maxrandsofar);
-    assert(done);
-  }
 }
 
 void init_board_counts (board_counts *cts) {
-  // printf("BCSIZE: %ld\n",sizeof(board_counts));
   cts->turn = 0;
   cts->squares_filled = 0;
   cts->score = 0;
   for (int k = 0 ; k < NUM_SQUARE_CLASSES ; ++k) {
     cts->counts[k] = 0;
   }
-  // memset(cts,0,sizeof(board_counts));
 }
 
 board_counts compute_board_counts (othello_bd *bd) {
@@ -243,12 +244,13 @@ board_counts compute_board_counts (othello_bd *bd) {
   return cts;
 }
 
+// hand-tuned static evaluation functions
 double hand_static_eval (othello_bd *bd) {
   board_counts cts = compute_board_counts(bd);
   if (cts.squares_filled < 64) {
     int result = 0;
     for (int k = 0 ; k < NUM_SQUARE_CLASSES ; ++k) {
-      result += cts.counts[k]*type_hand_score(k); // *(NUM_SQUARE_CLASSES-k);
+      result += cts.counts[k]*type_hand_score(k);
     }
     return (double)result;
   } else {
@@ -256,6 +258,7 @@ double hand_static_eval (othello_bd *bd) {
   }
 }
 
+// naive static evaluation function
 double naive_static_eval (othello_bd *bd) {
   board_counts cts = compute_board_counts(bd);
   if (cts.squares_filled < 64) {
@@ -269,6 +272,10 @@ double naive_static_eval (othello_bd *bd) {
   }
 }
 
+// show a minimax tree in graphviz format
+// I mostly used this when debugging the minimax code, 
+// so there may be some bitrot - it is not feasible for more
+// than two or three plies
 void show_minimax_tree_worker (minimax_node *node) {
   // fprintf(stderr,"recursing - %d\n",node->depth);
   // fprintf(stderr,"digraph G {");
