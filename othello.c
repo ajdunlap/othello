@@ -44,14 +44,11 @@ bool play_human_turn_is_game_over(othello_bd *bd, int *x, int *y, int opp_x, int
 }
 
 bool play_random_turn_is_game_over(othello_bd *bd, int *x, int *y, int opp_x, int opp_y, int depth) {
-  // show_othello_bd(stdout,bd);
   random_move(bd,x,y);
   if (*x != -1) {
-    // printf("I played %d %d\n",*x,*y);
     assert(play_piece_if_legal(bd,*x,*y));
     return false;
   } else {
-    // printf("Player %d passes.\n",bd->turn);
     *x = *y = -1;
     return pass_turn_is_game_over(bd);
   }
@@ -89,16 +86,21 @@ bool play_learning_minimax_ai_turn_is_game_over(othello_bd *bd, int *x, int *y, 
   return play_minimax_ai_turn_is_game_over(bd, x, y, opp_x, opp_y, depth, learning_static_eval);
 }
 
+bool play_naive_minimax_ai_turn_is_game_over(othello_bd *bd, int *x, int *y, int opp_x, int opp_y, int depth) {
+  return play_minimax_ai_turn_is_game_over(bd, x, y, opp_x, opp_y, depth, naive_static_eval);
+}
+
 void usage () {
-  fprintf(stderr,"Usage: othello [-d DEPTH|DEPTH1,DEPTH2] [-n NGAMES] [-q] PLAYER1 PLAYER2\n"
-                 "PLAYER1 and PLAYER2 can be any of human, cpu, learning-cpu, random\n"
+  fprintf(stderr,"Usage: othello [-d DEPTH|DEPTH1,DEPTH2] [-n NGAMES] [-q] [PLAYER1 PLAYER2]\n"
+                 "PLAYER1 and PLAYER2 can be any of human, hand-ai, naive-ai, learning-ai, random.\n"
+                 "If PLAYER1 and PLAYER2 are omitted, PLAYER1=human, PLAYER2=hand-ai is assumed.\n"
                  "Options:\n"
                  "  -d [DEPTH|DEPTH1,DEPTH2]  : specify depth of minimax tree search\n"
                  "                              DEPTH can be either a single integer or two comma-separated integers\n"
                  "                              to specify the depth for each player\n"
                  "  -h                        : print this help\n"
-                 "  -n NGAMES                 : plays n games\n"
-                 "  -q                        : don't print out boards, just winners of each game (for cpu-vs-cpu play)\n");
+                 "  -n NGAMES                 : play n games\n"
+                 "  -q                        : don't print out boards, just winners of each game (for AI-vs-AI play)\n");
 }
 
 int main (int argc, char **argv) {
@@ -183,14 +185,17 @@ int main (int argc, char **argv) {
     if (!strcmp(argv[k],"human")) {
       play[k-optind] = play_human_turn_is_game_over;
       have_human_player = true;
-    } else if (!strcmp(argv[k],"cpu")) {
+    } else if (!strcmp(argv[k],"hand-ai")) {
       play[k-optind] = play_hand_minimax_ai_turn_is_game_over;
-    } else if (!strcmp(argv[k],"learning-cpu")) {
+    } else if (!strcmp(argv[k],"naive-ai")) {
+      play[k-optind] = play_naive_minimax_ai_turn_is_game_over;
+    } else if (!strcmp(argv[k],"learning-ai")) {
       play[k-optind] = play_learning_minimax_ai_turn_is_game_over;
     } else if (!strcmp(argv[k],"random")) {
       play[k-optind] = play_random_turn_is_game_over;
     } else {
-      fprintf(stderr,"Player name must be 'human' or 'cpu'.");
+      fprintf(stderr,"Unrecognized player type %s. Expected one of human, hand-ai, naive-ai, learning-ai, random.\n",argv[k]);
+      usage();
       exit(1);
     }
   }

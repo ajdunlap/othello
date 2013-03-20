@@ -256,6 +256,19 @@ double hand_static_eval (othello_bd *bd) {
   }
 }
 
+double naive_static_eval (othello_bd *bd) {
+  board_counts cts = compute_board_counts(bd);
+  if (cts.squares_filled < 64) {
+    int result = 0;
+    for (int k = 0 ; k < NUM_SQUARE_CLASSES ; ++k) {
+      result += cts.counts[k];
+    }
+    return (double)result;
+  } else {
+    return cts.score ? INFINITY*((cts.score > 0) - (cts.score < 0)) : 0;
+  }
+}
+
 void show_minimax_tree_worker (minimax_node *node) {
   // fprintf(stderr,"recursing - %d\n",node->depth);
   // fprintf(stderr,"digraph G {");

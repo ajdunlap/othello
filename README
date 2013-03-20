@@ -14,8 +14,29 @@ For testing the AI to give the statistics I gave in class regarding
 the performance of the learning AI against the non-learning AI, I
 would generally give a command like
 
-  othello -q -n 200 cpu learning-cpu
+  othello -q -n 200 hand-ai learning-ai
 
 to play 200 games between the non-learning AI and the learning AI in
 quiet (-q) mode (i.e. don't print out every board, just say who won
 each game).
+
+Descriptions of the different AI modes available:
+
+  Naive AI (naive-ai): Static evaluation function works by counting each
+                       square as +/-1, depending on the player who owns
+                       the square.
+  Hand-tuned AI (hand-ai): Same as naive AI, but squares have different
+                           weights depending on their positions on the board.
+  Learning AI (learning-ai): Weights start out at 0, but are adjusted based
+                             on game outcomes over time. For this mode to be
+                             effective, you must use the -n option to play
+                             multiple games. This mode also has tuning
+                             parameters - currently they cannot be specified
+                             via the command-line, but they can be adjusted by
+                             changing the macro definitions of LEARNING_RATE
+                             and REGULARIZATION_FACTOR in learning-ai.c.
+  Random: Calling this mode "artificially intelligence" is a bit misleading,
+          since it just plays randomly! I used this as a sanity check when
+          creating new AIs - if the AI can't beat an AI that is just playing
+          randomly, there is probably a sign flipped in the static evaluation
+          function or something.
